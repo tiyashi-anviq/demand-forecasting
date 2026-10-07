@@ -1,0 +1,4 @@
+horizon,weeks_ahead,best_iter,lgbm_depot_row_accuracy,lgbm_national_row_accuracy,lgbm_national_total_accuracy,lgbm_bias,sales_forecast_depot_row_accuracy,sales_forecast_national_row_accuracy,sales_forecast_national_total_accuracy,sales_forecast_bias,seasonal_baseline_depot_row_accuracy,seasonal_baseline_national_row_accuracy,seasonal_baseline_national_total_accuracy,seasonal_baseline_bias
+M3,13,880,0.6042,0.4855,0.952,0.0146,0.476,0.36,0.5905,0.3906,0.5278,0.6304,0.8739,-0.1055
+M2,9,421,0.626,0.6235,0.9307,-0.0494,0.6388,0.684,0.9273,0.0677,0.5278,0.6304,0.8739,-0.1055
+M1,4,175,0.7033,0.7544,0.9485,-0.0128,0.7053,0.8274,0.9384,0.0266,0.5278,0.6304,0.8739,-0.1055

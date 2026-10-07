@@ -1,4 +1,4 @@
-"""LightGBM (stacked) predictor. Every model type exposes the same small interface so app.py can serve it:
+"""LightGBM (base, 48 features, no sales-forecast inputs) predictor. Every model type exposes the same small interface so app.py can serve it:
     Predictor(data_path).health() / .series() / .forecast(series_id, horizon)"""
 import json, sys
 from pathlib import Path
@@ -10,9 +10,8 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import train_lgbm as t
-import stack_lgbm as s
 
-NAME = "lightgbm_stacked"
+NAME = "lightgbm_base"
 H2N = {h: n for n, h in t.HORIZONS.items()}
 
 
@@ -24,7 +23,7 @@ class Predictor:
         self.last_hist = df[df.split == "history"].week_start.max()
         self.test_weeks = sorted(df[df.split == "test"].week_start.unique())
         self.cols = meta["features"]
-        self.X = {n: s.features_stack(df, wide, h).set_index(["series_id", "week_start"]) for n, h in t.HORIZONS.items()}
+        self.X = {n: t.features_for_horizon(df, wide, h).set_index(["series_id", "week_start"]) for n, h in t.HORIZONS.items()}
         self.models = {(n, q): lgb.Booster(model_file=str(HERE / "models" / f"{n}_{q}.txt")) for n in t.HORIZONS for q in ("p50", "p10", "p90")}
         self.horizons = list(t.HORIZONS)
 

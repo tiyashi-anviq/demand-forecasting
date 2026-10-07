@@ -12,7 +12,7 @@ export interface DataCtx {
   PM: Record<string, Product>; CATS: string[]; SEGS: string[];
   prodsIn: (seg: string, cat: string) => Product[];
   nameOf: (id: string) => string;
-  source: { kind: 'live' | 'sample' | 'loading'; model?: string; historyEnd?: string; error?: string };
+  source: { kind: 'live' | 'sample' | 'loading'; model?: string; historyEnd?: string; error?: string; backtestFrom?: string };
   refetching: boolean;
 }
 const Ctx = createContext<DataCtx | null>(null);

@@ -26,9 +26,9 @@ export function AppTopBar({ onMenu, menuActive }: { onMenu: () => void; menuActi
             </select>
           </label>
         )}
-        {names.length > 1 && model !== BUNDLED_BACKTEST_MODEL && (
-          <span className="app-source" title={`Forecast lines come from ${modelLabel(model)}. The accuracy, backtest and feature-importance figures in the demo are from ${modelLabel(BUNDLED_BACKTEST_MODEL)}.`}>
-            <Tag size="sm" type="red">Backtest figures: {modelLabel(BUNDLED_BACKTEST_MODEL)}</Tag>
+        {names.length > 1 && source.backtestFrom && source.backtestFrom !== model && (
+          <span className="app-source" title={`Forecast lines come from ${modelLabel(model)}. The accuracy, backtest and feature-importance figures in the demo are from ${modelLabel(source.backtestFrom || BUNDLED_BACKTEST_MODEL)}.`}>
+            <Tag size="sm" type="red">Backtest figures: {modelLabel(source.backtestFrom || BUNDLED_BACKTEST_MODEL)}</Tag>
           </span>
         )}
         <span className={'app-source' + (refetching ? ' pulse-refresh' : '')} title={source.kind === 'live' ? `Forecast served by the API (${source.model}), history to ${source.historyEnd}` : source.kind === 'sample' ? `API not reachable (${source.error}). Showing the bundled sample forecast.` : 'Connecting to the forecast API…'}>

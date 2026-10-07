@@ -1,15 +1,17 @@
-"""Run:  python -m pytest -q test_api.py   -> API output must equal lightgbm_stacked/outputs/lgbm_test_forecast.csv"""
+"""Run:  python -m pytest -q test_api.py   -> each model's API output must equal its own outputs/lgbm_test_forecast.csv"""
+import pytest
 import pandas as pd
 from fastapi.testclient import TestClient
 import app as A
 
-def test_lightgbm_stacked_matches_csv():
-    ref = pd.read_csv("lightgbm_stacked/outputs/lgbm_test_forecast.csv", parse_dates=["week_start"])
+@pytest.mark.parametrize("model", ["lightgbm_stacked", "lightgbm_base"])
+def test_model_matches_csv(model):
+    ref = pd.read_csv(f"{model}/outputs/lgbm_test_forecast.csv", parse_dates=["week_start"])
     with TestClient(A.app) as c:
         assert c.get("/health").json()["status"] == "ok"
         assert [m["model"] for m in c.get("/models").json()] == A.MODEL_FOLDERS
         for sid in ref.series_id.unique()[:20]:
-            pts = pd.DataFrame(c.get("/forecast", params={"series_id": sid, "model": "lightgbm_stacked"}).json()["points"])
+            pts = pd.DataFrame(c.get("/forecast", params={"series_id": sid, "model": model}).json()["points"])
             pts["week_start"] = pd.to_datetime(pts.week_start)
             m = ref[ref.series_id == sid].merge(pts, on="week_start")
             assert len(m) == 13 and (m.lgbm_p50 - m.p50).abs().max() < 1e-6 and (m.horizon_x == m.horizon_y).all()
@@ -24,3 +26,11 @@ def test_forecast_all_matches_single():
         assert len(allr["series"]) == 186 and all(len(v) == 13 for v in allr["series"].values())
         one = c.get("/forecast", params={"series_id": "nat|ALL|bt20"}).json()["points"]
         assert max(abs(a["p50"] - b["p50"]) for a, b in zip(allr["series"]["nat|ALL|bt20"], one)) < 1e-6
+
+
+def test_backtest_endpoint():
+    with TestClient(A.app) as c:
+        for m in A.MODEL_FOLDERS:
+            d = c.get("/backtest", params={"model": m}).json()
+            assert len(d["series"]) == 186 and len(d["weeks"]) == 52 and len(d["lgsc"]) == 9
+        assert c.get("/backtest", params={"model": "tft"}).status_code == 404

@@ -1,7 +1,7 @@
 """Eveready demand forecasting API. One sub-folder per model type, each with a predictor.py.
 Start:  uvicorn app:app --reload        Docs: http://127.0.0.1:8000/docs
 To add a model type: create a folder with predictor.py (class Predictor) and add it to MODEL_FOLDERS."""
-import importlib.util, os
+import importlib.util, json, os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Query
@@ -11,9 +11,10 @@ from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).parent
 DATA = os.environ.get("EVEREADY_DATA", str(ROOT / "data/raw/eveready_mock_weekly_model_ready.csv"))
-MODEL_FOLDERS = ["lightgbm_stacked"]          # add "tft", "seasonal_baseline", ... as they are built
+MODEL_FOLDERS = ["lightgbm_stacked", "lightgbm_base"]          # add "tft", "seasonal_baseline", ... as they are built
 DEFAULT_MODEL = "lightgbm_stacked"
 PRED = {}
+BT = {}
 
 
 def _load(folder):
@@ -110,3 +111,15 @@ def forecast_all(horizon: str | None = Query(None, description="M1, M2 or M3. Om
     if horizon is not None and horizon not in p.horizons:
         raise HTTPException(400, f"horizon must be one of {p.horizons}")
     return AllOut(model=model, history_end=str(p.last_hist.date()), series=p.forecast_all(horizon))
+
+
+@app.get("/backtest")
+def backtest(model: str = Query(DEFAULT_MODEL, description="model type = sub-folder name")):
+    """Rolling-backtest results of a model (52 weeks, 4 windows): per-series predictions per horizon, accuracy tables, feature importance."""
+    _pred(model)
+    f = ROOT / model / "backtest.json"
+    if not f.exists():
+        raise HTTPException(404, f"no backtest.json for '{model}'. Create it with make_backtest_json.py")
+    if model not in BT:
+        BT[model] = json.loads(f.read_text())
+    return BT[model]

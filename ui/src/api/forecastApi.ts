@@ -31,11 +31,41 @@ export function mergeApi(D: Dataset, api: ApiAll): Dataset {
   return { ...D, nat, kol };
 }
 
+export interface ApiBacktest { weeks: string[]; series: Record<string, Record<string, (number | null)[]>>; lgsc: any[]; lgwin: any[]; lgimp: any[] }
+export const useApiBacktest = (model = 'lightgbm_stacked') =>
+  useQuery({ queryKey: ['api-backtest', model], queryFn: () => getJson<ApiBacktest>(`/backtest?model=${encodeURIComponent(model)}`), retry: 0, staleTime: 5 * 60_000, placeholderData: keepPreviousData });
+
+/** Overlay the model's own backtest (lg3/lg2/lg1 per series, accuracy tables, window scores, feature importance). */
+export function mergeBacktest(D: Dataset, bt: ApiBacktest): Dataset {
+  const idx = new Map<string, number>(); D.weeks.forEach((w, i) => idx.set(w, i));
+  const HK: Record<string, string> = { M3: 'lg3', M2: 'lg2', M1: 'lg1' };
+  const patch = (cur: any, byH?: Record<string, (number | null)[]>) => {
+    if (!byH) return cur;
+    const out = { ...cur };
+    for (const h of Object.keys(HK)) {
+      const arr = (cur[HK[h]] || []).slice(); const src = byH[h];
+      if (src) bt.weeks.forEach((w, j) => { const i = idx.get(w); if (i != null) arr[i] = src[j]; });
+      out[HK[h]] = arr;
+    }
+    return out;
+  };
+  const nat = { ...D.nat }, kol = { ...D.kol };
+  for (const pid of Object.keys(D.nat)) nat[pid] = patch(D.nat[pid], bt.series[`nat|ALL|${pid}`]);
+  for (const key of Object.keys(D.kol)) kol[key] = patch(D.kol[key], bt.series[`kol|${key}`]);
+  return { ...D, nat, kol, lgsc: bt.lgsc, lgwin: bt.lgwin, lgimp: bt.lgimp };
+}
+
 export function useLiveForecast(base: Dataset | undefined, model: string) {
   const q = useApiForecastAll(model);
-  const merged = useMemo(() => (base && q.data ? mergeApi(base, q.data) : undefined), [base, q.data]);
+  const b = useApiBacktest(model);
+  const merged = useMemo(() => {
+    if (!base || !q.data) return undefined;
+    const withBt = b.data && !b.isPlaceholderData ? mergeBacktest(base, b.data) : base;
+    return mergeApi(withBt, q.data);
+  }, [base, q.data, b.data, b.isPlaceholderData]);
+  const backtestFrom = b.data && !b.isPlaceholderData ? model : BUNDLED_BACKTEST_MODEL;
   const source = q.data
-    ? ({ kind: 'live', model: q.data.model, historyEnd: q.data.history_end } as const)
-    : q.isError ? ({ kind: 'sample', error: (q.error as Error).message } as const) : ({ kind: 'loading' } as const);
-  return { merged, source, fetching: q.isFetching || q.isPlaceholderData };
+    ? ({ kind: 'live', model: q.data.model, historyEnd: q.data.history_end, backtestFrom } as const)
+    : q.isError ? ({ kind: 'sample', error: (q.error as Error).message, backtestFrom: BUNDLED_BACKTEST_MODEL } as const) : ({ kind: 'loading', backtestFrom: BUNDLED_BACKTEST_MODEL } as const);
+  return { merged, source, fetching: q.isFetching || q.isPlaceholderData || b.isFetching };
 }
