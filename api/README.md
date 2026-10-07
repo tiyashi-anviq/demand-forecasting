@@ -2,7 +2,7 @@
 
 One sub-folder per model type. Shared pieces (data, API app) sit at the top.
 
-    demand forecasting api/
+    api/
       app.py                  FastAPI service - serves every model folder listed in MODEL_FOLDERS
       test_api.py             checks the API against each model's saved forecast CSV
       pyproject.toml, uv.lock  dependencies (managed with uv)

@@ -1,7 +1,7 @@
 # Eveready Demand & Supply Planner (React)
 
 React + TypeScript + Vite + IBM Carbon, styled to `UI_DESIGN_REFERENCE.md` with the old demo's green palette (dark by default, light toggle).
-Forecasts come live from the **demand forecasting api** (stacked LightGBM). If the API is not running, the app falls back to the bundled
+Forecasts come live from the **api** folder (stacked LightGBM). If the API is not running, the app falls back to the bundled
 sample forecast and the top bar shows "Sample data · API offline".
 
 ## Run (Windows)
@@ -12,9 +12,9 @@ Or in a terminal in this folder:
     npm install
     npm run dev                     # http://localhost:5173
 
-Start the API first (in `..\demand forecasting api`, venv active):
+Start the API first (in `..\api`):
 
-    uvicorn app:app --reload        # http://127.0.0.1:8000
+    uv run uvicorn app:app --reload # http://127.0.0.1:8000
 
 The top-bar tag turns green: "Live · lightgbm_stacked". To point at another API address copy `.env.example` to `.env` and edit `VITE_API_URL`.
 

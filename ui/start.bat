@@ -1,5 +1,5 @@
 @echo off
-REM Starts the Eveready planner UI. Run "demand forecasting api" first (uvicorn app:app --reload) for live forecasts.
+REM Starts the Eveready planner UI. Run the api folder first (uv run uvicorn app:app --reload) for live forecasts.
 cd /d "%~dp0"
 where npm >nul 2>nul
 if errorlevel 1 (
