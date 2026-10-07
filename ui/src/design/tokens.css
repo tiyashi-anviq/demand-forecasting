@@ -1,0 +1,76 @@
+/* Token layer. Values come from the old demo palette (green brand, warm accent); names follow UI_DESIGN_REFERENCE
+   (--reiq-* app tokens, --cds-* Carbon tokens). Dark is the default theme. */
+:root {
+  /* spacing / type scale (Carbon) */
+  --cds-spacing-01: .125rem; --cds-spacing-02: .25rem; --cds-spacing-03: .5rem; --cds-spacing-04: .75rem; --cds-spacing-05: 1rem;
+  --cds-spacing-06: 1.5rem; --cds-spacing-07: 2rem; --cds-spacing-08: 2.5rem; --cds-spacing-09: 3rem; --cds-spacing-10: 4rem;
+  --cds-heading-05-font-size: 2rem;    --cds-heading-05-line-height: 2.5rem;
+  --cds-heading-03-font-size: 1.25rem; --cds-heading-03-line-height: 1.75rem;
+  --cds-body-01-font-size: .875rem;    --cds-body-01-line-height: 1.25rem;
+  --cds-label-01-font-size: .75rem;    --cds-label-01-line-height: 1rem;
+  /* app tokens */
+  --reiq-weight-regular: 400; --reiq-weight-semibold: 600; --reiq-letter-spacing-caps: .06em;
+  --reiq-size-topbar: 3rem; --reiq-size-sidebar: 16rem; --reiq-size-sidebar-md: 13rem; --reiq-size-sidebar-collapsed: 3rem;
+  --reiq-size-simulation-drawer: 40rem;
+  --reiq-motion-fast: 110ms cubic-bezier(.2, 0, .38, .9);
+  --reiq-scrim-backdrop: rgba(0, 0, 0, .4);
+  --f-b: "Vend Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-m: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+/* ---- light ---- */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #F3F4F3; --surface: #FFFFFF; --surface-2: #EAF3EE; --line: #DCDFDE; --grid: #E6E8E7;
+  --text: #061B12; --text-2: #5B6F65; --text-3: #6B7D73; --brand: #1B4332; --brand-ink: #FFFFFF; --ink-brand: #1B4332;
+  --accent: #D8A657; --on-accent: #3A2A05;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #4a3aa7; --s7: #e34948; --s8: #8d8d8d;
+  --good: #198038; --warn: #8A6410; --crit: #DA1E28; --neutral: #8D8D8D;
+  --shade-test: rgba(42,120,214,.13); --shade-warn: rgba(216,166,87,.28); --shade-info: rgba(27,175,122,.16);
+  --surface-strong: #E4E9E6;
+}
+/* ---- dark ---- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0B1712; --surface: #10231B; --surface-2: #132B21; --line: #254B3A; --grid: #1B3A2C;
+  --text: #EAF3EE; --text-2: #9DBFAE; --text-3: #7FA391; --brand: #3E8867; --brand-ink: #FFFFFF; --ink-brand: #6FBE9B;
+  --accent: #E7B563; --on-accent: #3A2A05;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #9085e9; --s7: #e66767; --s8: #a0a0a0;
+  --good: #42BE65; --warn: #D3AE5C; --crit: #FF8389; --neutral: #6F6F6F;
+  --shade-test: rgba(57,135,229,.16); --shade-warn: rgba(231,181,99,.24); --shade-info: rgba(25,158,112,.22);
+  --surface-strong: #1B3A2C;
+}
+:root {
+  --reiq-ui-01: var(--bg);
+  --reiq-layer-01: var(--surface);
+  --reiq-layer-02: var(--surface-2);
+  --reiq-layer-hover: var(--surface-2);
+  --reiq-border-subtle: var(--line);
+  --reiq-text-primary: var(--text);
+  --reiq-text-secondary: var(--text-2);
+  --reiq-text-helper: var(--text-3);
+  --reiq-interactive-01: var(--ink-brand);
+  --reiq-focus: var(--ink-brand);
+  --reiq-scrollbar-thumb: var(--line);
+  /* Carbon overrides so Carbon components pick up the brand palette */
+  --cds-background: var(--bg);
+  --cds-background-hover: var(--surface-2);
+  --cds-layer: var(--surface); --cds-layer-01: var(--surface); --cds-layer-02: var(--surface-2); --cds-layer-accent-01: var(--surface-strong);
+  --cds-layer-hover-01: var(--surface-2); --cds-layer-selected-01: var(--surface-2);
+  --cds-field: var(--surface); --cds-field-01: var(--surface); --cds-field-02: var(--surface-2);
+  --cds-border-subtle: var(--line); --cds-border-subtle-00: var(--line); --cds-border-subtle-01: var(--line); --cds-border-subtle-02: var(--line);
+  --cds-border-strong: var(--text-3); --cds-border-strong-01: var(--text-3); --cds-border-inverse: var(--text);
+  --cds-border-interactive: var(--ink-brand);
+  --cds-text-primary: var(--text); --cds-text-secondary: var(--text-2); --cds-text-helper: var(--text-3); --cds-text-placeholder: var(--text-3);
+  --cds-text-on-color: var(--brand-ink); --cds-icon-primary: var(--text); --cds-icon-secondary: var(--text-2);
+  --cds-link-primary: var(--ink-brand); --cds-link-primary-hover: var(--accent);
+  --cds-interactive: var(--ink-brand); --cds-focus: var(--ink-brand);
+  --cds-button-primary: var(--brand); --cds-button-primary-hover: color-mix(in srgb, var(--brand) 85%, #000);
+  --cds-button-primary-active: color-mix(in srgb, var(--brand) 70%, #000);
+  --cds-button-secondary: var(--surface-strong); --cds-button-tertiary: var(--ink-brand);
+  --cds-highlight: var(--shade-info);
+  --cds-support-error: var(--crit); --cds-support-success: var(--good); --cds-support-warning: var(--warn);
+  --cds-notification-background-error: var(--surface); --cds-notification-background-info: var(--surface);
+  --cds-notification-background-success: var(--surface); --cds-notification-background-warning: var(--surface);
+  --cds-overlay: var(--reiq-scrim-backdrop);
+  --cds-toggle-off: var(--text-3);
+}

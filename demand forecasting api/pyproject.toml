@@ -1,0 +1,22 @@
+[project]
+name = "eveready-demand-forecasting-api"
+version = "0.1.0"
+description = "FastAPI service serving Eveready demand forecasts (one folder per model type)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "lightgbm>=4.3",
+    "fastapi",
+    "uvicorn",
+]
+
+[dependency-groups]
+dev = [
+    "httpx",
+    "pytest",
+]
+
+[tool.uv]
+package = false

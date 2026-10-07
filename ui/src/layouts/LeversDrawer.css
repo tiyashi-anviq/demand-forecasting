@@ -1,0 +1,19 @@
+.drawer-backdrop { position: fixed; inset: 0; z-index: 9500; background: var(--reiq-scrim-backdrop); }
+.drawer-panel { position: absolute; right: 0; top: 0; bottom: 0; width: var(--reiq-size-simulation-drawer); max-width: 92vw; z-index: 9501; background: var(--reiq-layer-01); border-left: 1px solid var(--reiq-border-subtle); display: flex; flex-direction: column; animation: drawer-in var(--reiq-motion-fast); }
+@keyframes drawer-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@media (max-width: 671px) { .drawer-panel { max-width: 100vw; } }
+.drawer-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cds-spacing-04); padding: var(--cds-spacing-05) var(--cds-spacing-06); border-bottom: 1px solid var(--reiq-border-subtle); flex: none; }
+.drawer-title { margin: 0; font-size: var(--cds-heading-03-font-size); line-height: var(--cds-heading-03-line-height); font-weight: var(--reiq-weight-semibold); }
+.drawer-sub { margin: 2px 0 0; font-size: var(--cds-body-01-font-size); line-height: var(--cds-body-01-line-height); color: var(--reiq-text-secondary); }
+.drawer-close { width: 2.5rem; height: 2.5rem; flex: none; display: grid; place-items: center; background: none; border: 0; color: var(--reiq-text-primary); cursor: pointer; }
+.drawer-close:hover { background: var(--reiq-layer-hover); }
+.drawer-body { flex: 1; overflow-y: auto; padding: var(--cds-spacing-05) var(--cds-spacing-06); }
+.drawer-footer { flex: none; display: flex; align-items: center; gap: var(--cds-spacing-03); padding: var(--cds-spacing-04) var(--cds-spacing-06); border-top: 1px solid var(--reiq-border-subtle); background: var(--reiq-ui-01); }
+.lv-presets { display: flex; flex-wrap: wrap; gap: var(--cds-spacing-03); margin-bottom: var(--cds-spacing-05); }
+.lv-preset { border: 1px solid var(--reiq-border-subtle); background: var(--reiq-layer-01); color: var(--reiq-text-primary); font-size: 12px; padding: 4px 10px; cursor: pointer; }
+.lv-preset:hover { background: var(--reiq-layer-hover); border-color: var(--reiq-interactive-01); }
+.lv-row { margin-bottom: var(--cds-spacing-05); }
+.lv-row-h { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; margin-bottom: 4px; }
+.lv-row input[type=range] { width: 100%; accent-color: var(--brand); }
+.lv-sum { border: 1px solid var(--reiq-border-subtle); background: var(--reiq-layer-02); padding: var(--cds-spacing-04); }
+.lv-sum-v { font-size: 24px; margin: 4px 0; display: flex; align-items: center; gap: var(--cds-spacing-03); }
