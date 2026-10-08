@@ -6,9 +6,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel, Field
 import xai.explain as EXPLAIN
+import report.forecast_report as REPORT
 
 ROOT = Path(__file__).parent
 DATA = os.environ.get("EVEREADY_DATA", str(ROOT / "data/raw/eveready_mock_weekly_model_ready.csv"))
@@ -144,3 +145,24 @@ def explain(body: ExplainIn):
         return EXPLAIN.explain(p, body.series_ids, body.week_start, body.horizon, body.ref_weeks)
     except (KeyError, ValueError) as e:
         raise HTTPException(404, str(e))
+
+
+class ReportIn(BaseModel):
+    series_ids: list[str] = Field(..., description="series to summarise; summed (e.g. all national products)")
+    model: str = DEFAULT_MODEL
+    title: str = Field("National total", description="heading on the report")
+    scope: str = Field("", description="sub-heading, e.g. the filters selected in the UI")
+    horizon: str | None = None
+
+
+@app.post("/report/forecast", response_class=Response, responses={200: {"content": {"application/pdf": {}}}})
+def report_forecast(body: ReportIn):
+    """Forecast-summary PDF for the chosen series: headline numbers, chart, by horizon, by month and week by week."""
+    p = _pred(body.model)
+    if body.horizon is not None and body.horizon not in p.horizons:
+        raise HTTPException(400, f"horizon must be one of {p.horizons}")
+    try:
+        pdf = REPORT.build_pdf(p, body.series_ids, body.model, body.title, body.scope, body.horizon)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    return Response(pdf, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="forecast_report.pdf"'})

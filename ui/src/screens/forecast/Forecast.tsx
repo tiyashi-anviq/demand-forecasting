@@ -7,6 +7,7 @@ import { LineChart } from '../../components/LineChart';
 import { BarChart } from '../../components/BarChart';
 import { COL, addArr, fN, fP, fS, sum } from '../../lib/format';
 import { RowTable } from './RowTable';
+import { ReportButton } from '../../report/ReportButton';
 
 const LGK = ['a', 'f3', 'f2', 'f1', 'sb', 'bu', 'ly', 'fl', 'sfl', 'lg3', 'lg2', 'lg1', 'lt', 'lt10', 'lt90'];
 const LEVK = new Set(['lt', 'lt10', 'lt90']);
@@ -39,6 +40,8 @@ export default function Forecast() {
   const dep = Object.entries(D.dep) as [string, string][];
   const depKeys = depot === 'ALL' ? Object.keys(D.dep) : [depot];
   const seriesOf = (id: string) => (lvl === 'N' ? [D.nat[id]] : depKeys.map((d) => D.kol[d + '|' + id]));
+
+  const reportIds = (() => { const pids = (prod !== 'ALL' && PM[prod] ? [PM[prod]] : ps).map((p: any) => p.id); return lvl === 'N' ? natIds(pids) : kolIds(depKeys, pids); })();
 
   const A = useMemo(() => {
     const sel = prod !== 'ALL' && PM[prod] ? [PM[prod]] : prodsIn(seg, cat);
@@ -116,6 +119,8 @@ export default function Forecast() {
         <SelectCtl label="Category" items={CATS.filter((c) => seg === 'ALL' || D.prods.some((p: any) => p.cat === c && p.seg === seg)).map((c) => [c, c])} value={cat} all="All categories" onChange={(v) => { setCat(v); setProd('ALL'); }} />
         <SelectCtl label="Product" items={ps.map((p) => [p.id, p.name])} value={prod} all="All products" onChange={setProd} />
         <SegCtl label="Horizon" items={[['f3', 'M3 · 13 wk'], ['f2', 'M2 · 9 wk'], ['f1', 'M1 · 4 wk']]} value={h} onChange={setH} />
+        <ReportButton ids={reportIds} title={lvl === 'N' ? 'National' : depot === 'ALL' ? 'Kolkata depots (all 5)' : 'Kolkata · ' + (D.dep[depot] || depot)}
+          scope={prod !== 'ALL' && PM[prod] ? PM[prod].name : cat !== 'ALL' ? cat : seg !== 'ALL' ? seg : 'All products'} />
       </Ctl>
       <div className="grid g4" style={{ marginBottom: 12 }}>
         <Kpi l="LightGBM accuracy" v={fP(L.acc)} d={HN[h] + ' · backtest'} />
