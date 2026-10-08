@@ -3,12 +3,10 @@ import { useData } from '../../data/DataProvider';
 import { Card, Kpi } from '../../components/Controls';
 import { BarChart } from '../../components/BarChart';
 import { COL, fN, fP, sum } from '../../lib/format';
-import { USE_CASES, useGoUseCase } from '../../lib/useCases';
 import OutlookCard from './OutlookCard';
 
 export default function Overview() {
   const { D, SEGS } = useData();
-  const goUc = useGoUseCase();
   const k = D.kpi;
   const LS = (lv: string, h: string) => D.lgsc.find((r: any) => r.level === lv && r.horizon === h) || {};
   const bfy = ['FY24', 'FY25', 'FY26', 'FY27'];
@@ -17,7 +15,7 @@ export default function Overview() {
   void SEGS;
   return (
     <div>
-      <p className="lead">A walk-through of every use-case the mock dataset was built for. All numbers come from the synthetic dataset (157 history weeks, Oct 2023 – Sep 2026, plus a 13-week hidden test window). Use the menu on the left, filter on each screen and click rows to drill down. New here? Open the <Link to="/guide" style={{ color: 'var(--interactive, inherit)' }}>Guide</Link>.</p>
+      <p className="lead">A walk-through of the mock dataset. All numbers come from the synthetic dataset (157 history weeks, Oct 2023 – Sep 2026, plus a 13-week hidden test window). Use the menu on the left, filter on each screen and click rows to drill down. New here? Open the <Link to="/guide" style={{ color: 'var(--interactive, inherit)' }}>Guide</Link>.</p>
       <div className="grid g3" style={{ marginBottom: 12 }}>
         <Kpi l="LightGBM, depot rows M3" v={fP(LS('depot', 'M3').lgbm_accuracy)} d={`Sales forecast ${fP(LS('depot', 'M3').sales_forecast_accuracy)}`} />
         <Kpi l="LightGBM, depot rows M2" v={fP(LS('depot', 'M2').lgbm_accuracy)} d={`Sales forecast ${fP(LS('depot', 'M2').sales_forecast_accuracy)}`} />
@@ -47,17 +45,6 @@ export default function Overview() {
               { name: 'LightGBM · national total', color: COL(0), data: hz.map((h) => LS('national_total', h).lgbm_accuracy) }, { name: 'Sales forecast · national total', color: COL(2), data: hz.map((h) => LS('national_total', h).sales_forecast_accuracy) }] }} />
         </Card>
       </div>
-      <Card title="The 19 use cases" note="Click a card to jump to the screen that demonstrates it.">
-        <div className="grid g3">
-          {USE_CASES.map((u) => (
-            <button key={u.n} type="button" className="card" onClick={() => goUc(u)} style={{ textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit' }}>
-              <div className="muted small">Use case {u.n}</div>
-              <div style={{ fontWeight: 600, margin: '2px 0 4px' }}>{u.title}</div>
-              <div className="small muted">{u.desc}</div>
-            </button>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 }

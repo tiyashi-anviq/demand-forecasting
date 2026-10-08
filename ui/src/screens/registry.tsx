@@ -13,7 +13,7 @@ import Guide from './guide/Guide';
 
 export interface ScreenDef { id: string; path: string; title: string; subtitle: string; group: 'Plan' | 'Operate' | 'Assist'; icon: CarbonIconType; Component: ComponentType }
 export const SCREENS: ScreenDef[] = [
-  { id: 'overview', path: '/overview', title: 'Overview', group: 'Plan', icon: Dashboard, Component: Overview, subtitle: 'KPIs, the LightGBM demand outlook to January 2027 and the 19 use cases.' },
+  { id: 'overview', path: '/overview', title: 'Overview', group: 'Plan', icon: Dashboard, Component: Overview, subtitle: 'KPIs and the LightGBM demand outlook to January 2027.' },
   { id: 'forecast', path: '/forecast', title: 'Forecast & accuracy', group: 'Plan', icon: ChartLine, Component: Forecast, subtitle: '13 / 9 / 4-week-ahead forecasts, backtested over 52 weeks against the sales forecast and a seasonal baseline.' },
   { id: 'explain', path: '/explain', title: 'Explainability', group: 'Plan', icon: Analytics, Component: Xai, subtitle: 'Why the selected model forecasts what it does for a chosen week, with the inputs and its own backtest record.' },
   { id: 'newp', path: '/new-products', title: 'New products', group: 'Plan', icon: Rocket, Component: NewProducts, subtitle: 'Launch ramps, timing, cannibalisation, similarity analogues and the mosquito vaporizer.' },
