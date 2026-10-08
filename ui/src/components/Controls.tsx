@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { InfoBtn } from './InfoBtn';
 /** Segmented control (single choice). */
 export function SegCtl({ label, items, value, onChange }: { label?: string; items: [string, string][]; value: string; onChange: (v: string) => void }) {
   const body = <span className="seg">{items.map(([v, l]) => <button key={v} type="button" aria-pressed={v === value} onClick={() => onChange(v)}>{l}</button>)}</span>;
@@ -19,7 +20,7 @@ export const Ctl = ({ children, style }: { children: ReactNode; style?: React.CS
 export function Card({ title, note, children, style, id }: { title?: ReactNode; note?: ReactNode; children?: ReactNode; style?: React.CSSProperties; id?: string }) {
   return <div className="card" style={style} id={id}>{title && <h3>{title}</h3>}{note && <div className="note">{note}</div>}{children}</div>;
 }
-export function Kpi({ l, v, d, cls = '' }: { l: ReactNode; v: ReactNode; d?: ReactNode; cls?: string }) {
-  return <div className="card kpi"><div className="l">{l}</div><div className={'v ' + cls}>{v}</div><div className="d">{d}</div></div>;
+export function Kpi({ l, v, d, cls = '', info }: { l: ReactNode; v: ReactNode; d?: ReactNode; cls?: string; info?: { title: string; body: ReactNode } }) {
+  return <div className="card kpi"><div className="l">{l}{info && <InfoBtn title={info.title}>{info.body}</InfoBtn>}</div><div className={'v ' + cls}>{v}</div><div className="d">{d}</div></div>;
 }
 export const Chip = ({ kind = '', children }: { kind?: '' | 'good' | 'bad' | 'warn'; children: ReactNode }) => <span className={'chip ' + kind}>{children}</span>;

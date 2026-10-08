@@ -3,12 +3,13 @@ import { ComposedModal, ModalHeader, ModalBody } from '@carbon/react';
 import { fK, fN, niceTicks } from '../lib/format';
 import { useTip } from './Tip';
 import { useApp } from '../state/AppState';
+import { unitOf } from './unit';
 
 export interface LineSeries { name: string; color: string; data: (number | null)[]; dash?: boolean; w?: number }
 export interface Band { i0: number; i1: number; fill?: string; label?: string; tip?: string }
 export interface LineCfg {
   id: string; labels: string[]; series: LineSeries[]; bands?: Band[]; marks?: { i: number; label: string }[];
-  yfmt?: (v: number) => string; tfmt?: (v: number) => string; h?: number; yzero?: boolean; ymax?: number; title?: string; tipLabels?: string[]; nozoom?: boolean;
+  unit?: string; yfmt?: (v: number) => string; tfmt?: (v: number) => string; h?: number; yzero?: boolean; ymax?: number; title?: string; tipLabels?: string[]; nozoom?: boolean;
   /** click a week to open the "Why this week?" drawer: series ids (API form) and an ISO week per label */
   explain?: { ids: string[]; weeks: string[]; scope: string };
 }
@@ -39,6 +40,7 @@ function LineChartInner({ cfg, off, setOff }: { cfg: LineCfg; off: Set<number>; 
   }, [cfg, off, n, H]);
   const { tk, X, Y } = g;
   const yf = cfg.yfmt || fK;
+  const unit = unitOf(cfg.unit, cfg.yfmt);
   const nt = Math.min(8, n), stp = Math.max(1, Math.floor((n - 1) / (nt - 1 || 1)));
   const xt: number[] = []; for (let i = 0; i < n; i += stp) xt.push(i);
   const paths = cfg.series.map((s, k) => {
@@ -62,6 +64,7 @@ function LineChartInner({ cfg, off, setOff }: { cfg: LineCfg; off: Set<number>; 
     <>
       {cfg.series.length > 1 && <Legend series={cfg.series} off={off} setOff={setOff} />}
       {cfg.explain && <div className="chart-hint">Click any week to see why the forecast moves.</div>}
+      <div className="ch-unit" aria-hidden="true">{unit}</div>
       <svg className="ch" viewBox={`0 0 ${Wd} ${H}`} role="img" aria-label={cfg.title || 'chart'}>
         {(cfg.bands || []).map((b, j) => { const xa = X(Math.max(0, b.i0)), xb = X(Math.min(n - 1, b.i1)); return (
           <g key={j}><rect x={xa} y={m.t} width={Math.max(1.5, xb - xa)} height={H - m.t - m.b} fill={b.fill || 'var(--shade-test)'} />

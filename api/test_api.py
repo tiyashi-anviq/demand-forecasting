@@ -34,3 +34,34 @@ def test_backtest_endpoint():
             d = c.get("/backtest", params={"model": m}).json()
             assert len(d["series"]) == 186 and len(d["weeks"]) == 52 and len(d["lgsc"]) == 9
         assert c.get("/backtest", params={"model": "tft"}).status_code == 404
+
+
+def test_metrics_split_adds_up_and_updates_live(tmp_path, monkeypatch):
+    import shutil
+    shutil.copytree("backtests", tmp_path / "bt")
+    monkeypatch.setattr(A, "BACKTESTS", str(tmp_path / "bt"))
+    with TestClient(A.app) as c:
+        r = c.get("/metrics").json()
+        assert r["rows"] and {m["key"] for m in r["models"]} >= {"base", "stacked", "sales_team"}
+        assert all(abs(x["under"] + x["over"] - x["wape"]) < 1e-9 for x in r["rows"])
+        assert c.get("/metrics", params={"by": "category"}).status_code == 200 and c.get("/metrics", params={"by": "window"}).status_code == 200
+        assert c.get("/metrics", params={"by": "nope"}).status_code == 400
+        before = next(x for x in r["rows"] if x["level"] == "depot" and x["horizon"] == "M3" and x["model"] == "base")["wape"]
+        f = tmp_path / "bt" / "lightgbm_backtest_predictions.csv"
+        d = pd.read_csv(f); d["lgbm"] = d["lgbm"] * 1.5; d.to_csv(f, index=False)         # refreshed forecasts land in the folder
+        after = next(x for x in c.get("/metrics").json()["rows"] if x["level"] == "depot" and x["horizon"] == "M3" and x["model"] == "base")["wape"]
+        assert after != before
+
+
+def test_metrics_by_target_month_uses_three_origins():
+    with TestClient(A.app) as c:
+        full = c.get("/metrics").json()
+        r = c.get("/metrics", params={"month": "2026-09"}).json()
+        assert r["month"] == "2026-09" and r["origins"] == {"M3": "2026-06", "M2": "2026-07", "M1": "2026-08"}
+        assert [m["month"] for m in r["months"]][0] == "2025-10" and len(r["months"]) == 12
+        assert {x["horizon"] for x in r["rows"]} == {"M1", "M2", "M3"} and r["weekly"]
+        assert all(abs(x["under"] + x["over"] - x["wape"]) < 1e-9 for x in r["rows"])
+        # the 12 months partition the backtest, so the actuals of all months add up to the unfiltered actuals
+        tot = sum(next(x for x in c.get("/metrics", params={"month": m["month"]}).json()["rows"] if x["level"] == "depot" and x["horizon"] == "M3" and x["model"] == "base")["actual"] for m in r["months"])
+        assert abs(tot - next(x for x in full["rows"] if x["level"] == "depot" and x["horizon"] == "M3" and x["model"] == "base")["actual"]) < 1e-6
+        assert c.get("/metrics", params={"month": "2026-10"}).status_code == 400      # no actuals yet for that month

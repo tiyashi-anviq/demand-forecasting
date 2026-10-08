@@ -31,18 +31,18 @@ export default function Vap({ np, setNp }: NpProps) {
       </div>
       <div className="grid g2" style={{ marginBottom: 12 }}>
         <Card title="Launch forecast case — weeks 0-25" note="Planned launch 2 Jun 2025, actual 9 Jun (monsoon delay, incumbent counter-promotion).">
-          <LineChart cfg={{ id: 'vcs', h: 280, title: 'Launch forecast case', labels: cr.map((r: any) => 'Wk ' + r.weeks_since_launch), tipLabels: cr.map((r: any) => 'Wk ' + r.weeks_since_launch + ' · ' + dlabOf(r.week_start)),
+          <LineChart cfg={{ id: 'vcs', unit: 'Units per week', h: 280, title: 'Launch forecast case', labels: cr.map((r: any) => 'Wk ' + r.weeks_since_launch), tipLabels: cr.map((r: any) => 'Wk ' + r.weeks_since_launch + ' · ' + dlabOf(r.week_start)),
             series: [{ name: 'Actual', color: COL(0), data: cr.map((r: any) => r.actual_units), w: 2.6 }, { name: 'A. Company plan', color: COL(2), data: cr.map((r: any) => r.forecast_a_company_plan), dash: true },
               { name: 'B. Market share at launch', color: COL(1), data: cr.map((r: any) => r.forecast_b_market_share_at_launch) }, { name: 'C. Recalibrated weekly', color: COL(6), data: cr.map((r: any) => r.forecast_c_recalibrated_weekly) }] }} />
         </Card>
         <Card title={'Market panel — ' + M[np.metric][0]} note="All five brands, weekly, from Dec 2024.">
-          <LineChart cfg={{ id: 'vmk', h: 280, title: 'Market panel', labels: LABELS.slice(i0, NH), yfmt: M[np.metric][1], tfmt: M[np.metric][1], yzero: np.metric !== 'avg_price_per_refill_inr', marks: [{ i: L - i0, label: 'Launch' }],
+          <LineChart cfg={{ id: 'vmk', unit: np.metric.endsWith('_pct') ? M[np.metric][0] + ' (%)' : M[np.metric][0], h: 280, title: 'Market panel', labels: LABELS.slice(i0, NH), yfmt: M[np.metric][1], tfmt: M[np.metric][1], yzero: np.metric !== 'avg_price_per_refill_inr', marks: [{ i: L - i0, label: 'Launch' }],
             series: brands.map((br, i) => ({ name: br.replace('Eveready mosquito vaporizer line', 'Eveready vaporizer'), color: bcol[br], data: (D.vap[cs + '|' + br]?.[np.metric] || []).slice(i0, NH), w: br.startsWith('Eve') ? 2.8 : 1.8 })) }} />
         </Card>
       </div>
       <div className="grid g2">
         <Card title="Accuracy by window and method">
-          <BarChart cfg={{ id: 'vsm', h: 240, ymax: 1, cats: wins, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
+          <BarChart cfg={{ id: 'vsm', unit: 'Accuracy (% of demand)', h: 240, ymax: 1, cats: wins, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
             series: mets.map((m, i) => ({ name: m, color: [COL(2), COL(1), COL(6)][i], data: wins.map((w) => sm.find((r: any) => r.window === w && r.method === m)?.accuracy_pct) })) }} />
         </Card>
         <Card title="Pre-launch information pack">

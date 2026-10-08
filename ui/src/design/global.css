@@ -63,3 +63,13 @@ table.t td.n, table.t th.n { text-align: right; font-variant-numeric: tabular-nu
 .tw { overflow: auto; max-height: 420px; border: 1px solid var(--line); }
 .pg { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--text-2); }
 .pg button { border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 2px 10px; cursor: pointer; } .pg button:disabled { opacity: .4; cursor: default; }
+
+/* "i" info button with a small explanation popover (used on the festival KPI cards) */
+.infob { position: relative; display: inline-block; margin-left: 6px; vertical-align: middle; }
+.infob-b { width: 18px; height: 18px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--muted, inherit); font: italic 600 12px/16px Georgia, serif; cursor: pointer; }
+.infob-b:hover, .infob-b[aria-expanded="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+.infob-p { position: absolute; z-index: 30; top: 24px; left: -8px; width: 340px; max-width: 80vw; padding: 10px 12px; background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.25); font-weight: 400; font-size: 12.5px; line-height: 1.45; text-align: left; white-space: normal; }
+.infob-p b { display: block; margin-bottom: 4px; font-size: 13px; }
+.infob-p p, .infob-p li { font-size: inherit; line-height: inherit; letter-spacing: inherit; } .infob-p p { margin: 6px 0 0; } .infob-p ul { margin: 4px 0 0 16px; padding: 0; } .infob-p li + li { margin-top: 5px; }
+
+.ch-unit { font-size: 12px; color: var(--muted, #6b7280); margin: 2px 0 0 4px; }

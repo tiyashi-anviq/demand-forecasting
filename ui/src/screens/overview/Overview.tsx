@@ -36,11 +36,11 @@ export default function Overview() {
       <OutlookCard />
       <div className="grid g2" style={{ marginBottom: 12 }}>
         <Card title="Budget vs actual sales by financial year (₹ Cr)" note="FY24 and FY27 are part years (26 weeks in the data window). Home care starts Dec 2025.">
-          <BarChart cfg={{ id: 'ovb', title: 'Budget vs actual sales', cats: bfy, h: 240, yfmt: (v) => fN(v),
+          <BarChart cfg={{ id: 'ovb', unit: 'Units', title: 'Budget vs actual sales', cats: bfy, h: 240, yfmt: (v) => fN(v),
             series: [{ name: 'Budget', color: COL(0), data: bfy.map((f) => sum(tot(f).map((b: any) => b.budget_cr))) }, { name: 'Actual sales', color: COL(1), data: bfy.map((f) => sum(tot(f).map((b: any) => b.sales_cr))) }] }} />
         </Card>
         <Card title="LightGBM vs sales forecast, by horizon" note="52-week rolling backtest, weekly grain: 1 − Σ|forecast−actual| ÷ Σ actual.">
-          <BarChart cfg={{ id: 'ova2', title: 'Accuracy by horizon', cats: hz, h: 240, ymax: 1, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
+          <BarChart cfg={{ id: 'ova2', unit: 'Accuracy (% of demand)', title: 'Accuracy by horizon', cats: hz, h: 240, ymax: 1, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
             series: [{ name: 'LightGBM · depot rows', color: COL(1), data: hz.map((h) => LS('depot', h).lgbm_accuracy) }, { name: 'Sales forecast · depot rows', color: COL(5), data: hz.map((h) => LS('depot', h).sales_forecast_accuracy) },
               { name: 'LightGBM · national total', color: COL(0), data: hz.map((h) => LS('national_total', h).lgbm_accuracy) }, { name: 'Sales forecast · national total', color: COL(2), data: hz.map((h) => LS('national_total', h).sales_forecast_accuracy) }] }} />
         </Card>

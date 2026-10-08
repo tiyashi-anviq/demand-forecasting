@@ -43,7 +43,7 @@ function Cover() {
       <label>Week for heatmap<input type="range" min={0} max={NH - 1} value={wk} onChange={(e) => setWk(+e.target.value)} style={{ width: 220 }} /><span className="small muted">{LABELS[wk]}</span></label>
     </Ctl>
     <Card style={mb} title={`${D.dep[depot]} · ${nameOf(prod)}`} note="Stock vs safety stock vs demand (units).">
-      <LineChart cfg={{ id: 'sch', title: 'Stock vs safety stock', labels: LABELS, series: [
+      <LineChart cfg={{ id: 'sch', unit: 'Units', title: 'Stock vs safety stock', labels: LABELS, series: [
         { name: 'Closing stock', color: COL(0), data: K.cl, w: 2.4 }, { name: 'Safety stock', color: COL(1), data: K.ss, dash: true },
         { name: 'Weekly demand', color: COL(2), data: K.a }, { name: 'Opening stock', color: COL(6), data: K.os, dash: true }], bands: HB, h: 260 }} />
     </Card>
@@ -58,7 +58,7 @@ function Repl() {
   const R = D.rep, T = R.total;
   const dl: [string, number][] = Object.entries(R.delay as Record<string, number>).sort((a, b) => b[1] - a[1]);
   const short = (s: string) => s.replace(/^; /, '').replace("Missed slot — moved to next week's slot", 'Missed slot').replace('Truck slot slipped Fri→Sat', 'Fri→Sat slip').replace('short-shipped at CFA', 'short-shipped').replace('plant capacity constrained (allocated pro-rata after P1)', 'plant capacity').slice(0, 30);
-  const bars = (id: string, rows: any[]) => <BarChart cfg={{ id, cats: rows.map((r) => r.k), series: [{ name: 'OTIF', color: COL(0), data: rows.map((r) => r.otif) }, { name: 'Fill rate', color: COL(2), data: rows.map((r) => r.fill) }], yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v), ymax: 1, h: 220 }} />;
+  const bars = (id: string, rows: any[]) => <BarChart cfg={{ id, unit: '% of orders', cats: rows.map((r) => r.k), series: [{ name: 'OTIF', color: COL(0), data: rows.map((r) => r.otif) }, { name: 'Fill rate', color: COL(2), data: rows.map((r) => r.fill) }], yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v), ymax: 1, h: 220 }} />;
   return (<>
     <h2>Replenishment & OTIF</h2>
     <p className="lead">Depot replenishment orders on the Friday/Saturday truck schedule. OTIF = on time AND in full. Delay reasons come from missed slots, Fri→Sat slips, plant capacity and short-shipping at the CFA.</p>
@@ -68,19 +68,19 @@ function Repl() {
     </div>
     <div className="grid g2" style={mb}>
       <Card title="Monthly OTIF, on-time and in-full">
-        <LineChart cfg={{ id: 'rm', title: 'Monthly OTIF', labels: R.monthly.map((r: any) => mlab(r.m)), series: [
+        <LineChart cfg={{ id: 'rm', unit: '% of orders', title: 'Monthly OTIF', labels: R.monthly.map((r: any) => mlab(r.m)), series: [
           { name: 'OTIF', color: COL(0), data: R.monthly.map((r: any) => r.otif), w: 2.4 }, { name: 'On time', color: COL(2), data: R.monthly.map((r: any) => r.on_time) },
           { name: 'In full', color: COL(1), data: R.monthly.map((r: any) => r.in_full) }], yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v), yzero: false, h: 260 }} />
       </Card>
       <Card title="Why orders were late or short" note="Count of order lines by delay reason.">
-        <BarChart cfg={{ id: 'rd', title: 'Delay reasons', cats: dl.map((x) => short(x[0])), series: [{ name: 'Order lines', color: COL(1), data: dl.map((x) => x[1]) }], rot: true, h: 260,
+        <BarChart cfg={{ id: 'rd', unit: 'Order lines', title: 'Delay reasons', cats: dl.map((x) => short(x[0])), series: [{ name: 'Order lines', color: COL(1), data: dl.map((x) => x[1]) }], rot: true, h: 260,
           tipExtra: (c) => <div className="muted">{dl[c][0].replace(/^; /, '')}</div> }} />
       </Card>
     </div>
     <div className="grid g3" style={mb}>
       <Card title="By depot">{bars('rdp', R.depot)}</Card>
       <Card title="By truck slot">{bars('rsl', R.slot)}</Card>
-      <Card title="Planned vs actual day"><BarChart cfg={{ id: 'rdy', title: 'Planned vs actual day', cats: R.day.map((r: any) => r[0] + '→' + r[1]), series: [{ name: 'Order lines', color: COL(6), data: R.day.map((r: any) => r[2]) }], h: 220, rot: true }} /></Card>
+      <Card title="Planned vs actual day"><BarChart cfg={{ id: 'rdy', unit: 'Order lines', title: 'Planned vs actual day', cats: R.day.map((r: any) => r[0] + '→' + r[1]), series: [{ name: 'Order lines', color: COL(6), data: R.day.map((r: any) => r[2]) }], h: 220, rot: true }} /></Card>
     </div>
     <Card title="By category">
       <DataTable rows={R.cat} sort="otif" dir={1} per={11} cols={[{ k: 'k', l: 'Category' }, { k: 'n', l: 'Lines', n: true, f: (v) => fN(v) }, { k: 'otif', l: 'OTIF', n: true, f: (v) => fP(v) }, { k: 'on_time', l: 'On time', n: true, f: (v) => fP(v) }, { k: 'in_full', l: 'In full', n: true, f: (v) => fP(v) }, { k: 'fill', l: 'Fill', n: true, f: (v) => fP(v) }]} />
@@ -93,14 +93,14 @@ function Plant() {
   const [p, setP] = useTabState('supply:prod', 'cvt');
   const N = D.nat[p];
   const idx = LABELS.map((_, i) => i).filter((i) => i % 8 === 0 && i < NH);
-  const stk = (id: string, ser: [string, any[], number][]) => <BarChart cfg={{ id, title: id, stack: true, cats: idx.map((i) => LABELS[i]), series: ser.map(([n, a, c]) => ({ name: n, color: COL(c), data: idx.map((i) => a[i]) })), h: 240, rot: true }} />;
+  const stk = (id: string, ser: [string, any[], number][]) => <BarChart cfg={{ id, unit: 'Units', title: id, stack: true, cats: idx.map((i) => LABELS[i]), series: ser.map(([n, a, c]) => ({ name: n, color: COL(c), data: idx.map((i) => a[i]) })), h: 240, rot: true }} />;
   const HB = [{ i0: NH, i1: D.weeks.length - 1, label: 'Hidden test window', tip: 'Hidden test window (actuals withheld)' }];
   return (<>
     <h2>Plant capacity & allocation</h2>
     <p className="lead">When asks exceed plant capacity, supply is allocated B2C first, then Plant 1 (P1), then Plant 2 (P2) — an assumption in the model. The gap shows up as lost sales.</p>
     <Ctl><SelectCtl label="Product" items={D.prods.map((x) => [x.id, x.name])} value={p} onChange={setP} /></Ctl>
     <Card style={mb} title={`Production vs capacity · ${nameOf(p)}`}>
-      <LineChart cfg={{ id: 'pc1', title: 'Production vs capacity', labels: LABELS, series: [
+      <LineChart cfg={{ id: 'pc1', unit: 'Units per week', title: 'Production vs capacity', labels: LABELS, series: [
         { name: 'Production ask', color: COL(1), data: N.pr }, { name: 'Capacity', color: COL(0), data: N.pc, dash: true },
         { name: 'Allocated', color: COL(2), data: N.pa, w: 2.4 }, { name: 'Demand', color: COL(6), data: N.a }], bands: HB, h: 260 }} />
     </Card>
@@ -133,8 +133,8 @@ function Moq() {
       <Kpi l="Lots taken at break" v={fP(1 - ms / lots)} d={`${fN(ms)} of ${fN(lots)} lots missed`} /><Kpi l="Capture rate" v={fP(cap / (cap + fg))} d="by value" />
     </div>
     <div className="grid g2" style={mb}>
-      <Card title="Monthly savings (₹)"><BarChart cfg={{ id: 'mm', title: 'Monthly savings', cats: M.month.map((r: any) => mlab(r.m)), rot: true, stack: true, h: 260, series: [{ name: 'Captured', color: COL(2), data: M.month.map((r: any) => r.captured) }, { name: 'Foregone', color: COL(1), data: M.month.map((r: any) => r.foregone) }] }} /></Card>
-      <Card title="By supply source"><BarChart cfg={{ id: 'ms', title: 'By supply source', cats: M.src.map((r: any) => r.k), h: 260, series: [{ name: 'Captured', color: COL(2), data: M.src.map((r: any) => r.captured) }, { name: 'Foregone', color: COL(1), data: M.src.map((r: any) => r.foregone) }] }} /></Card>
+      <Card title="Monthly savings (₹)"><BarChart cfg={{ id: 'mm', unit: 'Savings (₹)', title: 'Monthly savings', cats: M.month.map((r: any) => mlab(r.m)), rot: true, stack: true, h: 260, series: [{ name: 'Captured', color: COL(2), data: M.month.map((r: any) => r.captured) }, { name: 'Foregone', color: COL(1), data: M.month.map((r: any) => r.foregone) }] }} /></Card>
+      <Card title="By supply source"><BarChart cfg={{ id: 'ms', unit: 'Savings (₹)', title: 'By supply source', cats: M.src.map((r: any) => r.k), h: 260, series: [{ name: 'Captured', color: COL(2), data: M.src.map((r: any) => r.captured) }, { name: 'Foregone', color: COL(1), data: M.src.map((r: any) => r.foregone) }] }} /></Card>
     </div>
     <Card title="By product"><DataTable rows={M.prod} sort="foregone" per={10} search cols={[{ k: 'name', l: 'Product' }, { k: 'src', l: 'Source' }, { k: 'moq', l: 'MOQ', n: true, f: (v) => fN(v) }, { k: 'brk', l: 'Price-break qty', n: true, f: (v) => fN(v) }, { k: 'disc', l: 'Discount', n: true, f: (v) => fP(v) }, { k: 'lots', l: 'Lots', n: true }, { k: 'missed', l: 'Missed', n: true }, { k: 'captured', l: 'Captured ₹', n: true, f: (v) => fN(v) }, { k: 'foregone', l: 'Foregone ₹', n: true, f: (v) => fN(v) }]} /></Card>
   </>);

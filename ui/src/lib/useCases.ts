@@ -11,7 +11,7 @@ export const USE_CASES: UseCase[] = [
   { n: '6', path: '/new-products', view: 'timing', title: 'Launch timing', desc: 'Best and worst launch month for each product.' },
   { n: '7', path: '/new-products', view: 'sim', title: 'Similarity index', desc: 'Automated 0–1 ranking of existing products as analogues, plus vaporizer vs incumbents.' },
   { n: '8', path: '/new-products', view: 'launch', title: 'Mosquito vaporizer (new product, no history)', desc: 'New-product forecast with no history: plan vs market-share build vs recalibration.' },
-  { n: '9', path: '/new-products', view: 'cannib', title: 'Cannibalisation', desc: 'Internal and external volume losses.' },
+  { n: '9', path: '/new-products', view: 'cannib', title: 'Cannibalisation', desc: "Volume new products take from Eveready's own products." },
   { n: '10', path: '/supply', view: 'cover', title: 'Depot stock & cover', desc: 'Weeks of cover, stock vs safety stock, low and high cover alerts.' },
   { n: '11', path: '/supply', view: 'repl', title: 'Replenishment & OTIF', desc: 'Friday/Saturday trucks, slot slips, short-shipping.' },
   { n: '12', path: '/supply', view: 'plant', title: 'Plant capacity & priority', desc: 'B2C → P1 → P2 allocation and lost sales.' },

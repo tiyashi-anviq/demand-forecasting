@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { fK, fN, niceTicks } from '../lib/format';
 import { Legend } from './LineChart';
 import { useTip } from './Tip';
+import { unitOf } from './unit';
 
 export interface BarSeries { name: string; color: string; data: (number | null)[] }
-export interface BarCfg { id: string; cats: string[]; series: BarSeries[]; stack?: boolean; yfmt?: (v: number) => string; tfmt?: (v: number) => string; h?: number; ymax?: number; rot?: boolean; title?: string; tipExtra?: (c: number) => React.ReactNode }
+export interface BarCfg { id: string; cats: string[]; series: BarSeries[]; stack?: boolean; unit?: string; yfmt?: (v: number) => string; tfmt?: (v: number) => string; h?: number; w?: number; ymax?: number; rot?: boolean; title?: string; tipExtra?: (c: number) => React.ReactNode }
 export function BarChart({ cfg }: { cfg: BarCfg }) {
   const tip = useTip();
   const [off, setOff] = useState<Set<number>>(new Set());
-  const Wd = 820, H = cfg.h || 260, m = { l: 54, r: 12, t: 10, b: cfg.rot ? 58 : 30 }, nc = cfg.cats.length;
+  const Wd = cfg.w || 820, H = cfg.h || 260, m = { l: 54, r: 12, t: 10, b: cfg.rot ? 58 : 30 }, nc = cfg.cats.length;
   const act = cfg.series.filter((_, i) => !off.has(i));
   let hi = 0, lo = 0;
   for (let c = 0; c < nc; c++) {
@@ -20,6 +21,7 @@ export function BarChart({ cfg }: { cfg: BarCfg }) {
   const Y = (v: number) => m.t + (1 - (v - y0) / (y1 - y0 || 1)) * (H - m.t - m.b);
   const bw = (Wd - m.l - m.r) / nc, k = act.length, inner = Math.min(bw * 0.78, cfg.stack ? 44 : Math.max(10, bw * 0.78));
   const yf = cfg.yfmt || fK;
+  const unit = unitOf(cfg.unit, cfg.yfmt);
   const bars: React.ReactNode[] = [];
   for (let c = 0; c < nc; c++) {
     const cx = m.l + bw * c + bw / 2; let top = 0, bot = 0;
@@ -44,6 +46,7 @@ export function BarChart({ cfg }: { cfg: BarCfg }) {
   return (
     <div>
       {cfg.series.length > 1 && <Legend series={cfg.series} off={off} setOff={setOff} />}
+      <div className="ch-unit" aria-hidden="true">{unit}</div>
       <svg className="ch" viewBox={`0 0 ${Wd} ${H}`} role="img" aria-label={cfg.title || 'chart'}>
         {tk.map((t) => <g key={t}><line className="grid" x1={m.l} x2={Wd - m.r} y1={Y(t)} y2={Y(t)} /><text x={m.l - 6} y={Y(t) + 4} textAnchor="end">{yf(t)}</text></g>)}
         <line className="axis" x1={m.l} x2={Wd - m.r} y1={Y(0)} y2={Y(0)} />

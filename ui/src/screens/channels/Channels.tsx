@@ -59,12 +59,12 @@ function QuickCommerce() {
       <Kpi l="Lost sales" v={fN(me.ls)} d="units" />
     </div>
     <div className="grid g2" style={mb}>
-      <Card title="Orders vs true demand vs shipped"><LineChart cfg={{ id: 'qa', title: 'Orders vs true demand vs shipped', labels: LABELS, series: [{ name: 'Orders placed', color: COL(1), data: Q.o }, { name: 'True demand', color: COL(0), data: Q.t, w: 2.4 }, { name: 'Shipped', color: COL(2), data: Q.s }], bands: HB, h: 250 }} /></Card>
-      <Card title="OTIF components"><LineChart cfg={{ id: 'qb', title: 'OTIF components', labels: LABELS, series: [{ name: 'OTIF', color: COL(0), data: rt('ot'), w: 2.4 }, { name: 'On time', color: COL(2), data: rt('on') }, { name: 'In full', color: COL(6), data: rt('if') }], yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v), yzero: false, ymax: 1, h: 250 }} /></Card>
+      <Card title="Orders vs true demand vs shipped"><LineChart cfg={{ id: 'qa', unit: 'Units per week', title: 'Orders vs true demand vs shipped', labels: LABELS, series: [{ name: 'Orders placed', color: COL(1), data: Q.o }, { name: 'True demand', color: COL(0), data: Q.t, w: 2.4 }, { name: 'Shipped', color: COL(2), data: Q.s }], bands: HB, h: 250 }} /></Card>
+      <Card title="OTIF components"><LineChart cfg={{ id: 'qb', unit: '% of orders', title: 'OTIF components', labels: LABELS, series: [{ name: 'OTIF', color: COL(0), data: rt('ot'), w: 2.4 }, { name: 'On time', color: COL(2), data: rt('on') }, { name: 'In full', color: COL(6), data: rt('if') }], yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v), yzero: false, ymax: 1, h: 250 }} /></Card>
     </div>
     <div className="grid g2" style={mb}>
-      <Card title="Dark-store stock & returns"><LineChart cfg={{ id: 'qd', title: 'Dark-store stock & returns', labels: LABELS, series: [{ name: 'Dark-store closing stock', color: COL(0), data: Q.cl }, { name: 'Returns', color: COL(1), data: Q.rt }], bands: HB, h: 230 }} /></Card>
-      <Card title="Units by product (all hubs)"><BarChart cfg={{ id: 'qp', title: 'Units by product', cats: pl.map((x) => x.k.slice(0, 16)), rot: true, series: [{ name: 'True demand', color: COL(0), data: pl.map((x) => x.t) }, { name: 'Ordered', color: COL(1), data: pl.map((x) => x.o) }, { name: 'Shipped', color: COL(2), data: pl.map((x) => x.s) }], h: 230 }} /></Card>
+      <Card title="Dark-store stock & returns"><LineChart cfg={{ id: 'qd', unit: 'Units', title: 'Dark-store stock & returns', labels: LABELS, series: [{ name: 'Dark-store closing stock', color: COL(0), data: Q.cl }, { name: 'Returns', color: COL(1), data: Q.rt }], bands: HB, h: 230 }} /></Card>
+      <Card title="Units by product (all hubs)"><BarChart cfg={{ id: 'qp', unit: 'Units', title: 'Units by product', cats: pl.map((x) => x.k.slice(0, 16)), rot: true, series: [{ name: 'True demand', color: COL(0), data: pl.map((x) => x.t) }, { name: 'Ordered', color: COL(1), data: pl.map((x) => x.o) }, { name: 'Shipped', color: COL(2), data: pl.map((x) => x.s) }], h: 230 }} /></Card>
     </div>
     <Card title="All partner × hub combinations">
       <RowClickTable rows={rows} rowKey="k" per={12} onRow={(r) => setQc(r.k)} cols={[{ k: 'hub', l: 'Hub' }, { k: 'partner', l: 'Partner' }, { k: 't', l: 'True demand', n: true, f: (v) => fN(v) }, { k: 'o', l: 'Ordered', n: true, f: (v) => fN(v) }, { k: 'ratio', l: 'Over-order', n: true, f: (v) => (v ? v.toFixed(2) + '×' : '–') }, { k: 'otif', l: 'OTIF', n: true, f: (v) => fP(v) }, { k: 'fill', l: 'Fill', n: true, f: (v) => fP(v) }, { k: 'ls', l: 'Lost sales', n: true, f: (v) => fN(v) }]} />
@@ -90,8 +90,8 @@ function Monsoon() {
     <p className="lead">When the monsoon arrives late, rain-sensitive demand (torches, rechargeable lights, home care) is pushed back, then partly recovers when it arrives. Shaded: shock weeks (gold) and recovery weeks (green).</p>
     <Ctl><SelectCtl label="Product" items={prodItems(D)} value={p} onChange={setP} /></Ctl>
     <div className="grid g2">
-      <Card title={`Demand · ${nameOf(p)}`}><LineChart cfg={{ id: 'mo1', title: 'Demand', labels: LABELS, series: [{ name: 'Actual demand', color: COL(0), data: N.a, w: 2.4 }, { name: 'Last year', color: COL(3), data: N.ly, dash: true }, { name: 'Budget', color: COL(2), data: N.bu, dash: true }], bands, h: 270 }} /></Card>
-      <Card title="Rainfall (mm) and mosquito/dengue index"><LineChart cfg={{ id: 'mo2', title: 'Rainfall and dengue index', labels: LABELS, series: [{ name: 'Rainfall (mm)', color: COL(0), data: D.cal.rain }, { name: 'Dengue index ×100', color: COL(1), data: D.cal.dengue.map((v: number) => v * 100) }], bands, h: 270, yfmt: (v) => fN(v, 0) }} /></Card>
+      <Card title={`Demand · ${nameOf(p)}`}><LineChart cfg={{ id: 'mo1', unit: 'Units per week', title: 'Demand', labels: LABELS, series: [{ name: 'Actual demand', color: COL(0), data: N.a, w: 2.4 }, { name: 'Last year', color: COL(3), data: N.ly, dash: true }, { name: 'Budget', color: COL(2), data: N.bu, dash: true }], bands, h: 270 }} /></Card>
+      <Card title="Rainfall (mm) and mosquito/dengue index"><LineChart cfg={{ id: 'mo2', unit: 'Rainfall in mm · dengue index ×100', title: 'Rainfall and dengue index', labels: LABELS, series: [{ name: 'Rainfall (mm)', color: COL(0), data: D.cal.rain }, { name: 'Dengue index ×100', color: COL(1), data: D.cal.dengue.map((v: number) => v * 100) }], bands, h: 270, yfmt: (v) => fN(v, 0) }} /></Card>
     </div>
   </>);
 }
@@ -112,7 +112,7 @@ function Festivals() {
       <SelectCtl label="Product" items={prodItems(D)} value={p} onChange={setP} />
       <SelectCtl label="Depot" items={Object.entries(D.dep) as [string, string][]} value={K} onChange={setK} all="All 5 depots" />
     </Ctl>
-    <Card style={mb} title={`Kolkata demand · ${nameOf(p)}`}><LineChart cfg={{ id: 'fe1', title: 'Kolkata demand', labels: LABELS, series: [{ name: 'Actual demand', color: COL(0), data: A, w: 2.4 }], bands: [...bands, ...HB], h: 260 }} /></Card>
+    <Card style={mb} title={`Kolkata demand · ${nameOf(p)}`}><LineChart cfg={{ id: 'fe1', unit: 'Units per week', title: 'Kolkata demand', labels: LABELS, series: [{ name: 'Actual demand', color: COL(0), data: A, w: 2.4 }], bands: [...bands, ...HB], h: 260 }} /></Card>
     <Card title="Festival calendar & category lifts">
       <DataTable rows={D.fest} sort="date" dir={-1} per={10} search cols={[{ k: 'festival', l: 'Festival' }, { k: 'date', l: 'Date' }, { k: 'scope', l: 'Scope' }, { k: 'categories_lifted', l: 'Categories lifted' }, { k: 'kolkata_intensity', l: 'Kolkata', n: true }, { k: 'national_intensity', l: 'National', n: true }, { k: 'depot_sell_in_window', l: 'Depot sell-in window' }]} />
     </Card>
@@ -135,7 +135,7 @@ function Influencer() {
       <Kpi l="Cost / incremental unit" v={fN(r.cost_per_incremental_unit_inr) + ' ₹'} d={`Incremental value ${r.incremental_value_inr_lakh} L ₹`} />
     </div>
     <Card style={mb} title="Units per depot-share point — test vs control">
-      <LineChart cfg={{ id: 'in1', title: 'Test vs control', labels: LABELS.slice(i0, i1 + 1), series: [{ name: 'Test depots', color: COL(1), data: W2.t.slice(i0, i1 + 1), w: 2.4 }, { name: 'Control depots', color: COL(0), data: W2.c.slice(i0, i1 + 1) }], bands: [{ i0: W2.w0 - i0, i1: W2.w1 - i0, fill: 'var(--shade-info)', label: 'Campaign', tip: 'Campaign window' }], h: 260, yfmt: (v) => fN(v, 0) }} />
+      <LineChart cfg={{ id: 'in1', unit: 'Units per week', title: 'Test vs control', labels: LABELS.slice(i0, i1 + 1), series: [{ name: 'Test depots', color: COL(1), data: W2.t.slice(i0, i1 + 1), w: 2.4 }, { name: 'Control depots', color: COL(0), data: W2.c.slice(i0, i1 + 1) }], bands: [{ i0: W2.w0 - i0, i1: W2.w1 - i0, fill: 'var(--shade-info)', label: 'Campaign', tip: 'Campaign window' }], h: 260, yfmt: (v) => fN(v, 0) }} />
     </Card>
     <Card title="All campaigns">
       <RowClickTable rows={D.inf} rowKey="product_id" per={8} onRow={(x) => setId(x.product_id)} cols={[{ k: 'product', l: 'Campaign' }, { k: 'campaign_start', l: 'Start' }, { k: 'campaign_weeks', l: 'Weeks', n: true }, { k: 'influencer_lift_pct', l: 'Lift', n: true, f: (v) => fS(v, 0) }, { k: 'incremental_units_test_depots', l: 'Incremental units', n: true, f: (v) => fN(v) }, { k: 'kolkata_influencer_spend_inr_lakh', l: 'Spend (L ₹)', n: true }, { k: 'cost_per_incremental_unit_inr', l: '₹ / unit', n: true, f: (v) => fN(v) }]} />
@@ -160,7 +160,7 @@ function Competitor() {
       <Kpi l="Value lost" v={e.national_value_lost_inr_cr + ' ₹ Cr'} d="" />
     </div>
     <Card title={`${e.affected_product} — national demand vs last year`}>
-      <LineChart cfg={{ id: 'co1', title: 'National demand', labels: LABELS, series: [{ name: 'Actual demand', color: COL(0), data: N.a, w: 2.4 }, { name: 'Budget', color: COL(2), data: N.bu, dash: true }, { name: 'Seasonal baseline', color: COL(6), data: N.sb, dash: true }], bands: [{ i0, i1, fill: 'var(--shade-warn)', label: 'Competitor action', tip: e.action }, ...HB], h: 280 }} />
+      <LineChart cfg={{ id: 'co1', unit: 'Units per week', title: 'National demand', labels: LABELS, series: [{ name: 'Actual demand', color: COL(0), data: N.a, w: 2.4 }, { name: 'Budget', color: COL(2), data: N.bu, dash: true }, { name: 'Seasonal baseline', color: COL(6), data: N.sb, dash: true }], bands: [{ i0, i1, fill: 'var(--shade-warn)', label: 'Competitor action', tip: e.action }, ...HB], h: 280 }} />
     </Card>
   </>);
 }

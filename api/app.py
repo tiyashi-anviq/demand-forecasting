@@ -10,11 +10,13 @@ from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel, Field
 import xai.explain as EXPLAIN
 import report.forecast_report as REPORT
+import metrics.error_metrics as METRICS
 
 ROOT = Path(__file__).parent
 DATA = os.environ.get("EVEREADY_DATA", str(ROOT / "data/raw/eveready_mock_weekly_model_ready.csv"))
 MODEL_FOLDERS = ["lightgbm_stacked", "lightgbm_base"]          # add "tft", "seasonal_baseline", ... as they are built
 DEFAULT_MODEL = "lightgbm_stacked"
+BACKTESTS = os.environ.get("EVEREADY_BACKTESTS", str(ROOT / "backtests"))   # drop refreshed backtest CSVs here; /metrics picks them up
 PRED = {}
 BT = {}
 
@@ -166,3 +168,18 @@ def report_forecast(body: ReportIn):
     except ValueError as e:
         raise HTTPException(404, str(e))
     return Response(pdf, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="forecast_report.pdf"'})
+
+
+@app.get("/metrics")
+def metrics(by: str = Query("overall", description="overall, category or window"), month: str | None = Query(None, pattern=r"^\d{4}-\d{2}$", description="target month YYYY-MM; M3/M2/M1 are then the forecasts made 3/2/1 months earlier")):
+    """Forecast error per model, level (depot / national / national total) and horizon: accuracy, under-forecast, over-forecast, bias and MAE.
+    Under-forecast = units short of demand / actual units (lost-sales risk); over-forecast = units above demand / actual units (excess-stock risk); they add up to the WAPE.
+    Computed live from the CSVs in api/backtests/ (cached by file modification time), so a refreshed file shows up on the next call."""
+    if by not in ("overall", "category", "window"):
+        raise HTTPException(400, "by must be overall, category or window")
+    try:
+        return METRICS.compute(BACKTESTS, DATA, by, month)
+    except FileNotFoundError as e:
+        raise HTTPException(404, str(e))
+    except ValueError as e:
+        raise HTTPException(400, str(e))

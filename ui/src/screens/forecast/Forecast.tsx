@@ -8,9 +8,12 @@ import { BarChart } from '../../components/BarChart';
 import { COL, addArr, fN, fP, fS, sum } from '../../lib/format';
 import { RowTable } from './RowTable';
 import { ReportButton } from '../../report/ReportButton';
+import { InfoBtn } from '../../components/InfoBtn';
+import { errorDrivers, type DirOut } from './errorDrivers';
 
 const LGK = ['a', 'f3', 'f2', 'f1', 'sb', 'bu', 'ly', 'fl', 'sfl', 'lg3', 'lg2', 'lg1', 'lt', 'lt10', 'lt90'];
 const LEVK = new Set(['lt', 'lt10', 'lt90']);
+const XK = ['ls', 'ec', 'ic'];   // lost sales, units lost to competitors, units lost to new products (ec/ic exist only at national level)
 const HLG: Record<string, string> = { f3: 'lg3', f2: 'lg2', f1: 'lg1' };
 const HN: Record<string, string> = { f3: 'M3 · 13 wk ahead', f2: 'M2 · 9 wk ahead', f1: 'M1 · 4 wk ahead' };
 const LV: Record<string, string> = { depot: 'Kolkata depot rows', national: 'National rows', national_total: 'National total (sum of products)' };
@@ -47,8 +50,10 @@ export default function Forecast() {
     const sel = prod !== 'ALL' && PM[prod] ? [PM[prod]] : prodsIn(seg, cat);
     const out: Record<string, any> = { lt0: [] };
     LGK.forEach((k) => (out[k] = []));
+    XK.forEach((k) => (out[k] = []));
     sel.forEach((p) => seriesOf(p.id).forEach((o) => {
       LGK.forEach((k) => addArr(out[k], LEVK.has(k) ? lv.adj(o[k], p.id) : o[k]));
+      XK.forEach((k) => o[k] && addArr(out[k], o[k]));
       addArr(out.lt0, o.lt);
     }));
     out.n = sel.length;
@@ -72,6 +77,23 @@ export default function Forecast() {
 
   const hk = ['f3', 'f2', 'f1'];
   const uo = hk.map((k) => accOf(A.a, A[HLG[k]], NH, A[HLG[k]]));
+  const ED = useMemo(() => errorDrivers({ a: A.a, f: A[lgk], cal: D.cal, NH, i0: BT.i0, i1: BT.i1, ls: A.ls, ec: A.ec, ic: A.ic, national: lvl === 'N' }), [A, lgk, D, NH, BT, lvl]);
+  const edScope = (prod !== 'ALL' && PM[prod] ? PM[prod].name : cat !== 'ALL' ? cat : seg !== 'ALL' ? seg : 'All products') + (lvl === 'N' ? ' · national' : depot === 'ALL' ? ' · all Kolkata depots' : ' · ' + (D.dep[depot] || depot));
+  const edPop = (d: DirOut, under: boolean) => {
+    const what = under ? 'under-forecast' : 'over-forecast';
+    return <>
+      <p className="muted" style={{ marginTop: 0 }}>{edScope} · {HN[h]} · backtest weeks, for the selection as a whole.</p>
+      {!ED.weeks ? <p>No backtest weeks to analyse for this selection.</p>
+        : !d.total ? <p>LightGBM never {what} this selection at {h.replace('f', 'M')}.</p> : <>
+          <p>{fN(d.total)} units {under ? 'missed' : 'over-forecast'} across {d.weeks} of {ED.weeks} weeks.{d.weeks < 4 ? ` Only ${d.weeks} week${d.weeks > 1 ? 's' : ''}, so treat this with caution.` : ''}</p>
+          {d.drivers.length ? <ul>{d.drivers.map((x) => (
+            <li key={x.name}><b style={{ display: 'inline' }}>{x.name}</b>: {fP(x.unitShare, 0)} of the {under ? 'missed' : 'excess'} units in {fP(x.weekShare, 0)} of the weeks ({x.lift.toFixed(1)}×). About {fN(x.avgOn)} a week when present vs {fN(x.avgOff)} otherwise.{x.about ? <span className="muted"> {x.about[0].toUpperCase() + x.about.slice(1)}.</span> : null}</li>))}</ul>
+            : <p>The {what} was spread evenly across the weeks; no covariate stands out.</p>}
+        </>}
+      {ED.notes.map((n) => <p key={n} className="muted">{n}</p>)}
+      <p className="muted">These are conditions present when the model missed: an association, not proof of cause.</p>
+    </>;
+  };
 
   const catRows = CATS.map((c) => {
     const ids = D.prods.filter((p: any) => p.cat === c && (seg === 'ALL' || p.seg === seg)).map((p: any) => p.id);
@@ -130,17 +152,21 @@ export default function Forecast() {
       </div>
       <Card id="fch" style={{ marginBottom: 12 }} title={<>Actual vs LightGBM forecast <Chip>{prod !== 'ALL' ? nameOf(prod) : 'selection'}</Chip></>}
         note="LightGBM is shown for the backtest weeks (last 52) and for the hidden test window, where actuals are withheld and the P10–P90 range is shown. Click legend items to hide lines.">
-        <LineChart cfg={{ id: 'fc2', title: 'Actual vs LightGBM forecast', labels: LABELS, series: ser, h: 220,
+        <LineChart cfg={{ id: 'fc2', unit: 'Units per week', title: 'Actual vs LightGBM forecast', labels: LABELS, series: ser, h: 220,
           explain: { weeks: W, scope: (prod !== 'ALL' ? nameOf(prod) : 'selection') + (lvl === 'N' ? ' · national' : depot === 'ALL' ? ' · all depots' : ' · ' + depot), ids: (() => { const pids = (prod !== 'ALL' && PM[prod] ? [PM[prod]] : prodsIn(seg, cat)).map((x: any) => x.id); return lvl === 'N' ? natIds(pids) : kolIds(depKeys, pids); })() },
           bands: [{ i0: BT.i0, i1: BT.i1, fill: 'var(--shade-info)', label: 'Backtest', tip: 'LightGBM backtest week' }, { i0: NH, i1: W.length - 1, label: 'Hidden test window', tip: 'Hidden test window (actuals withheld)' }] }} />
       </Card>
       <div className="grid g2" style={{ marginBottom: 12 }}>
-        <Card title="Under- vs over-forecast by horizon" note="LightGBM units missed, backtest weeks.">
-          <BarChart cfg={{ id: 'fuo2', title: 'Under- vs over-forecast', cats: ['M3', 'M2', 'M1'], stack: true, h: 220,
+        <Card title="Under- vs over-forecast by horizon" note="LightGBM units missed, backtest weeks. The i buttons list the covariates present when the model missed, at the selected horizon.">
+          <div className="small" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', margin: '-2px 0 6px' }}>
+            <span>What drove the under-forecast<InfoBtn title={`Under-forecast (missed demand) · ${h.replace('f', 'M')}`}>{edPop(ED.under, true)}</InfoBtn></span>
+            <span>What drove the over-forecast<InfoBtn title={`Over-forecast (excess) · ${h.replace('f', 'M')}`}>{edPop(ED.over, false)}</InfoBtn></span>
+          </div>
+          <BarChart cfg={{ id: 'fuo2', unit: 'Units (total over the backtest)', title: 'Under- vs over-forecast', cats: ['M3', 'M2', 'M1'], stack: true, h: 220,
             series: [{ name: 'Under-forecast (missed demand)', color: COL(1), data: uo.map((x) => x.u) }, { name: 'Over-forecast (excess)', color: COL(0), data: uo.map((x) => x.o) }] }} />
         </Card>
         <Card title={`Accuracy by category · ${HN[h]}`} note="LightGBM vs the sales forecast, backtest weeks.">
-          <BarChart cfg={{ id: 'fcat2', title: 'Accuracy by category', cats: catRows.map((r) => r.c.replace('Batteries — ', 'Bat. ').replace('Lighting — ', 'Ltg. ')), rot: true, h: 260, ymax: 1, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
+          <BarChart cfg={{ id: 'fcat2', unit: 'Accuracy (% of demand)', title: 'Accuracy by category', cats: catRows.map((r) => r.c.replace('Batteries — ', 'Bat. ').replace('Lighting — ', 'Ltg. ')), rot: true, h: 260, ymax: 1, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
             series: [{ name: 'LightGBM', color: COL(1), data: catRows.map((r) => r.l) }, { name: 'Sales forecast', color: COL(5), data: catRows.map((r) => r.s) }] }} />
         </Card>
       </div>
@@ -157,7 +183,7 @@ export default function Forecast() {
         </Card>
       </div>
       <Card style={{ marginBottom: 12 }} title="What drives the LightGBM forecast" note="Share of total model gain, all horizons. The stacked model leans mostly on the sales team's own forecast (log_sales_fc), then the budget and the seasonal baseline, so treat accuracy as a best case: it is only as good as the plan it corrects. Test it without those columns before trusting it on real data.">
-        <BarChart cfg={{ id: 'fim', title: 'Feature importance', cats: D.lgimp.map((r: any) => r.feature), rot: true, h: 240, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
+        <BarChart cfg={{ id: 'fim', unit: '% of total model gain', title: 'Feature importance', cats: D.lgimp.map((r: any) => r.feature), rot: true, h: 240, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
           series: [{ name: 'Share of gain', color: COL(0), data: D.lgimp.map((r: any) => r.share) }] }} />
       </Card>
       <Card id="ffl" title={<>Challenge flags <span className="muted small">— sales and procurement</span></>}

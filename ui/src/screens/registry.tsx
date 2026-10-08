@@ -1,9 +1,10 @@
 import type { ComponentType } from 'react';
-import { Dashboard, ChartLine, Analytics, Rocket, Calendar, Delivery, ChartNetwork, Chat, Book } from '@carbon/icons-react';
+import { Dashboard, ChartLine, Analytics, Rocket, Calendar, Delivery, ChartNetwork, Chat, Book, ChartErrorBar } from '@carbon/icons-react';
 import type { CarbonIconType } from '@carbon/icons-react';
 import Overview from './overview/Overview';
 import Forecast from './forecast/Forecast';
 import Xai from './xai/Xai';
+import Metrics from './metrics/Metrics';
 import NewProducts from './newp/NewProducts';
 import FestivalCalendar from './calendar/FestivalCalendar';
 import Supply from './supply/Supply';
@@ -15,6 +16,7 @@ export interface ScreenDef { id: string; path: string; title: string; subtitle: 
 export const SCREENS: ScreenDef[] = [
   { id: 'overview', path: '/overview', title: 'Overview', group: 'Plan', icon: Dashboard, Component: Overview, subtitle: 'KPIs and the LightGBM demand outlook to January 2027.' },
   { id: 'forecast', path: '/forecast', title: 'Forecast & accuracy', group: 'Plan', icon: ChartLine, Component: Forecast, subtitle: '13 / 9 / 4-week-ahead forecasts, backtested over 52 weeks against the sales forecast and a seasonal baseline.' },
+  { id: 'metrics', path: '/error-metrics', title: 'Accuracy check', group: 'Plan', icon: ChartErrorBar, Component: Metrics, subtitle: 'Did the forecasts come true? Each model against what customers actually bought, 3, 2 and 1 months ahead.' },
   { id: 'explain', path: '/explain', title: 'Explainability', group: 'Plan', icon: Analytics, Component: Xai, subtitle: 'Why the selected model forecasts what it does for a chosen week, with the inputs and its own backtest record.' },
   { id: 'newp', path: '/new-products', title: 'New products', group: 'Plan', icon: Rocket, Component: NewProducts, subtitle: 'Launch ramps, timing, cannibalisation, similarity analogues and the mosquito vaporizer.' },
   { id: 'cal', path: '/calendar', title: 'Festival calendar', group: 'Plan', icon: Calendar, Component: FestivalCalendar, subtitle: 'Pick a festival to see the forecast around it.' },

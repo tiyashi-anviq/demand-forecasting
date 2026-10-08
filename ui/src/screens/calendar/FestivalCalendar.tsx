@@ -93,20 +93,38 @@ function Detail({ f, sr, cat, FEST, calSeries }: { f: any; sr: any; cat: string;
   const eIds = natIds(D.prods.filter((p) => cat === 'ALL' || p.cat === cat).map((p) => p.id));
   const i0 = Math.max(0, i - 8), i1 = Math.min(W.length - 1, i + 8), sl = (a: any[]) => a.slice(i0, i1 + 1);
   const cats = CATS.map((ct) => { const s = calSeries(ct), v = s.V[i], pr = sum(s.V.slice(Math.max(0, i - 4), i)) / Math.max(1, Math.min(4, i)); return { cat: ct, v, pr, up: pr ? v / pr - 1 : null, fc: s.FC[i] }; });
+  const prevIdx = Array.from({ length: Math.min(4, i) }, (_, k) => i - Math.min(4, i) + k);
+  const prevFest = FEST.filter((x) => prevIdx.some((j) => W[j] === monOf(x.date)) && x.festival !== f.festival).map((x) => `${short(x.festival)} (${dshort(x.date).replace(/ \d{4}$/, '')})`);
+  const movers = cats.map((c2) => ({ ...c2, du: c2.v - c2.pr })).filter((c2) => c2.pr > 0).sort((a, b) => Math.abs(b.du) - Math.abs(a.du)).slice(0, 3);
+  const preLY = pi >= 0 ? sum(sr.V.slice(Math.max(0, pi - 4), pi)) / Math.max(1, Math.min(4, pi)) : null, lvlYoY = preLY && pre ? pre / preLY - 1 : null;
+  const info = {
+    cur: { title: 'Demand in the holiday week', body: <>
+      <p>National demand (all products{cat === 'ALL' ? '' : ', ' + cat}) for the Monday-to-Sunday week that contains the festival: {hist ? 'actual' : 'forecast'}.</p>
+      <p>How much of it this festival should move: <b>{f.categories_lifted || 'nothing specific'}</b>. At national level the effect is scaled by the national intensity ({f.national_intensity}), and the lifted categories are a small part of national volume (batteries are most of it), so a festival effect rarely shows in this total.</p></> },
+    prev: { title: 'Why this number', body: <>
+      <p>This week's demand ÷ the average of the {prevIdx.length} weeks before it, minus 1. Those weeks ran: {prevIdx.map((j) => `${dlabOf(W[j])} ${fN(sr.V[j])}`).join(' · ')}.</p>
+      {prevFest.length > 0 && <p>Festivals inside those weeks: <b>{prevFest.join(', ')}</b>. A festival just before can inflate the average, so a drop may really be that boost wearing off.</p>}
+      {movers.length > 0 && <><p>Biggest movers against the average:</p><ul>{movers.map((c2) => <li key={c2.cat}>{c2.cat}: {fS(c2.up)} ({c2.du >= 0 ? '+' : '−'}{fN(Math.abs(c2.du))} units)</li>)}</ul></>}
+      <p>The data builds each festival as a depot sell-in peak in the ~4 weeks before it (peaking ~10 days ahead), so the festival week itself often sits after the peak and reads lower.</p></> },
+    fc: { title: 'The model forecast', body: <p>What the LightGBM model forecast for this week 13 weeks earlier, using only data up to then. The percentage is how far that forecast was from what happened.</p> },
+    ly: { title: 'Compared with last year', body: <>
+      <p>This week against the week of {pf ? `${pf.festival.split(' (')[0]}, ${dshort(pf.date)}` : 'the same festival last year'}. Festival dates move each year, so the two are matched by festival, not by calendar week.</p>
+      {lvlYoY != null && <p>Level check: the 4 weeks before the festival are {fS(lvlYoY)} against the 4 weeks before it last year, so {Math.abs(lvlYoY) > 0.1 ? 'most of this gap is the general level of demand, not the festival' : 'the general level is similar and the gap is mostly the festival week'}.</p>}</> },
+  };
   return (
     <div id="cdet">
       {head}
       <div className="grid g4" style={{ margin: '12px 0' }}>
-        <Kpi l={hist ? 'Demand in holiday week (actual)' : 'Forecast for holiday week'} v={fN(cur)} d={hist ? `Week of ${dlabOf(W[i])}` : `P10–P90: ${fN(sr.PL[i])} – ${fN(sr.PH[i])}`} />
-        <Kpi l="vs previous 4 weeks" v={fS(up)} d={`average ${fN(pre)} a week`} cls={up != null && up >= 0 ? 'pos' : 'neg'} />
+        <Kpi info={info.cur} l={hist ? 'Demand in holiday week (actual)' : 'Forecast for holiday week'} v={fN(cur)} d={hist ? `Week of ${dlabOf(W[i])}` : `P10–P90: ${fN(sr.PL[i])} – ${fN(sr.PH[i])}`} />
+        <Kpi info={info.prev} l="vs previous 4 weeks" v={fS(up)} d={`average ${fN(pre)} a week`} cls={up != null && up >= 0 ? 'pos' : 'neg'} />
         {hist
-          ? <Kpi l="LightGBM forecast, made 13 wks ahead" v={sr.FC[i] != null ? fN(sr.FC[i]) : '–'} d={sr.FC[i] != null ? `${fS(sr.FC[i] / cur - 1)} vs actual` : 'Forecast made before this week; no backtest for this week'} />
+          ? <Kpi info={info.fc} l="LightGBM forecast, made 13 wks ahead" v={sr.FC[i] != null ? fN(sr.FC[i]) : '–'} d={sr.FC[i] != null ? `${fS(sr.FC[i] / cur - 1)} vs actual` : 'Forecast made before this week; no backtest for this week'} />
           : <Kpi l="Forecast window" v="Yes" d="This week is inside the 5 Oct 2026 – 3 Jan 2027 forecast" />}
-        <Kpi l="vs same festival last year" v={ly != null ? fS(cur / ly - 1) : '–'} d={pf ? `${pf.festival.split(' (')[0]} ${dshort(pf.date)}: ${fN(ly)}` : 'No earlier occurrence in the data'} cls={ly != null && cur >= ly ? 'pos' : 'neg'} />
+        <Kpi info={info.ly} l="vs same festival last year" v={ly != null ? fS(cur / ly - 1) : '–'} d={pf ? `${pf.festival.split(' (')[0]} ${dshort(pf.date)}: ${fN(ly)}` : 'No earlier occurrence in the data'} cls={ly != null && cur >= ly ? 'pos' : 'neg'} />
       </div>
       <div style={{ margin: '-4px 0 12px' }}><button type="button" className="zbtn" style={{ position: 'static' }} onClick={() => setExplain({ ids: eIds, week: W[i], scope: short(f.festival) + ' week · ' + (cat === 'ALL' ? 'all products' : cat) + ' · national' })}>Why is this week different? →</button></div>
       <Card style={{ marginBottom: 12 }} title={'Demand around ' + short(f.festival)} note={`Eight weeks either side of the holiday week${cat === 'ALL' ? ', all products' : ', ' + cat}. Past weeks show actual demand and the 13-week-ahead LightGBM backtest forecast; later weeks show the forecast.`}>
-        <LineChart cfg={{ id: 'cch', title: 'Demand around ' + f.festival, labels: LABELS.slice(i0, i1 + 1), h: 240,
+        <LineChart cfg={{ id: 'cch', unit: 'Units per week', title: 'Demand around ' + f.festival, labels: LABELS.slice(i0, i1 + 1), h: 240,
           explain: { weeks: W.slice(i0, i1 + 1), ids: eIds, scope: short(f.festival) + ' · ' + (cat === 'ALL' ? 'all products' : cat) + ' · national' },
           series: [{ name: 'Actual demand', color: COL(0), data: sl(sr.A), w: 2.4 }, { name: 'LightGBM forecast', color: COL(1), data: sl(sr.FC), w: 2.4 }, { name: 'Same weeks last year', color: COL(3), data: sl(sr.LY), dash: true },
             ...(i1 >= NH ? [{ name: 'P10', color: COL(7), data: sl(sr.PL.map((v: any, k: number) => (k >= NH ? v : null))), dash: true, w: 1.1 }, { name: 'P90', color: COL(7), data: sl(sr.PH.map((v: any, k: number) => (k >= NH ? v : null))), dash: true, w: 1.1 }] : [])],
@@ -115,9 +133,9 @@ function Detail({ f, sr, cat, FEST, calSeries }: { f: any; sr: any; cat: string;
       </Card>
       <Card title="By category in the holiday week">
         <DataTable per={12} sort="up" rows={cats} cols={[
-          { k: 'cat', l: 'Category' }, { k: 'v', l: hist ? 'Actual' : 'Forecast', n: true, f: (v) => fN(v) }, { k: 'pr', l: 'Prior 4-wk avg', n: true, f: (v) => fN(v) },
+          { k: 'cat', l: 'Category' }, { k: 'v', l: (hist ? 'Actual' : 'Forecast') + ' (units)', n: true, f: (v) => fN(v) }, { k: 'pr', l: 'Prior 4-wk avg (units)', n: true, f: (v) => fN(v) },
           { k: 'up', l: 'Change', n: true, f: (v) => <span className={v >= 0 ? 'pos' : 'neg'}>{fS(v)}</span> },
-          ...(hist ? [{ k: 'fc', l: 'LightGBM (13 wks ahead)', n: true, f: (v: any) => fN(v) }] : [])]} />
+          ...(hist ? [{ k: 'fc', l: 'LightGBM, 13 wks ahead (units)', n: true, f: (v: any) => fN(v) }] : [])]} />
       </Card>
     </div>
   );

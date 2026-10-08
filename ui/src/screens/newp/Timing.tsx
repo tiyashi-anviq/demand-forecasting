@@ -15,7 +15,7 @@ export default function Timing({ np, setNp, npds }: NpProps) {
       <p className="lead">Each launch was re-simulated as if it had launched in every month. Bars show first-52-week units; the actual launch month is flagged.</p>
       <Ctl><SelectCtl label="Launch" items={npds.map((p) => [p.id, p.name])} value={np.id} onChange={(v) => setNp({ id: v })} /></Ctl>
       <Card style={{ marginBottom: 12 }}>
-        <BarChart cfg={{ id: 'tch', h: 260, cats: rows.map((r: any) => r.launch_month), title: 'Launch timing',
+        <BarChart cfg={{ id: 'tch', unit: 'Units', h: 260, cats: rows.map((r: any) => r.launch_month), title: 'Launch timing',
           series: [{ name: 'Units, first 52 weeks', color: COL(0), data: rows.map((r: any) => r.units_first_52wk) }, { name: 'Units, first 13 weeks', color: COL(2), data: rows.map((r: any) => r.units_first_13wk) }],
           tipExtra: (c) => <div className="muted">{rows[c].verdict} · rank {rows[c].rank_52wk}/12 · {rows[c].key_demand_events_in_first_13wk || ''}{rows[c].is_actual_launch_month ? <> · <b>actual launch month</b></> : null}</div> }} />
       </Card>

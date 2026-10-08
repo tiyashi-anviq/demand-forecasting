@@ -113,7 +113,7 @@ function Overall({ names }: { names: string[] }) {
   const feats = [...new Set(maps.flatMap((m) => [...m.keys()]))].sort((a, b) => Math.max(...maps.map((m) => m.get(b) || 0)) - Math.max(...maps.map((m) => m.get(a) || 0))).slice(0, 12);
   return (
     <Card title={names.length > 1 ? 'How each model behaves overall' : 'How the model behaves overall'} note={`Share of ${names.length > 1 ? "each model's" : modelLabel(names[0]) + "'s"} total gain by feature (top 12), from this model's own training.`}>
-      <BarChart cfg={{ id: 'exg', title: 'Feature importance by model', cats: feats.map(fl), rot: true, h: 260, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
+      <BarChart cfg={{ id: 'exg', unit: '% of total model gain', title: 'Feature importance by model', cats: feats.map(fl), rot: true, h: 260, yfmt: (v) => fP(v, 0), tfmt: (v) => fP(v),
         series: names.map((m, i) => ({ name: modelLabel(m), color: COL(i), data: feats.map((f) => maps[i].get(f) || 0) })) }} />
     </Card>);
 }
@@ -126,7 +126,7 @@ function Trust({ names }: { names: string[] }) {
   ['depot', 'national', 'national_total'].forEach((lv) => ['M3', 'M2', 'M1'].forEach((h) => rows.push({ lv, h, v: bts.map((b) => pick(b, lv, h).lgbm_accuracy), sf: pick(bts[0], lv, h).sales_forecast_accuracy })));
   return (
     <Card title="Can you trust it? Backtest accuracy" note="Accuracy over the last 52 weeks (four 13-week windows, trained only on data before each window). Green = the best of the listed forecasts.">
-      <table className="ex-facts ex-cmp"><thead><tr><th>Level</th><th>Horizon</th>{names.map((m) => <th key={m} className="n">{modelLabel(m)}</th>)}<th className="n">Sales forecast</th></tr></thead>
+      <table className="ex-facts ex-cmp"><thead><tr><th>Level</th><th>Horizon</th>{names.map((m) => <th key={m} className="n">{modelLabel(m)}</th>)}<th className="n" title="A benchmark to compare against, not an input to this model unless listed in the drivers">Sales team forecast (benchmark)</th></tr></thead>
         <tbody>{rows.map((r) => { const best = Math.max(...r.v, r.sf ?? 0); return (
           <tr key={r.lv + r.h}><td>{LV[r.lv]}</td><td>{r.h}</td>{r.v.map((x: number, i: number) => <td key={i} className={'n' + (x === best ? ' pos' : '')}>{fP(x)}</td>)}<td className={'n' + (r.sf === best ? ' pos' : '')}>{fP(r.sf)}</td></tr>); })}</tbody></table>
     </Card>);

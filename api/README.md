@@ -28,6 +28,7 @@ Add a dependency with `uv add <pkg>` (or `uv add --dev <pkg>` for test-only).
 - `GET /series?model=lightgbm_stacked` - the 186 series
 - `GET /forecast/all?model=lightgbm_stacked` - every series in one call (used by the React UI)
 - `GET /forecast?product_id=bt20&depot_id=ALL&model=lightgbm_stacked` - 13-week P50/P10/P90 (plus sales forecast and seasonal baseline). `horizon=M1|M2|M3` forces one model; `depot_id=ALL` is national.
+- `GET /metrics?by=overall|category|window[&month=YYYY-MM]` - forecast error per model, level (depot / national / national total) and horizon: accuracy, **under-forecast** (units short of demand / actual units, the lost-sales risk), **over-forecast** (units above demand / actual units, the excess-stock risk), bias and average miss. Under + over = WAPE. Computed live from the CSVs in `backtests/` (each needs `series_id, week_start, horizon, window, actual_demand_units` plus forecast columns such as `lgbm`, `lgbm_stack`, `chronos2`, `nhits`, `sales_forecast`, `seasonal_baseline_fc_units`). **To update it, drop a refreshed CSV into `backtests/`**; the next call picks it up, no restart. Only rows every model forecast are scored. Add `month=2026-09` to score only the target weeks starting in that month: M3, M2 and M1 are then the forecasts made 3, 2 and 1 months earlier (June, July and August), and the response lists the available months and the weekly actual-vs-forecast series. A month with no actuals returns 400. The UI's *Error metrics* screen reads this endpoint.
 
 ## Rebuild the LightGBM models
     cd lightgbm_stacked

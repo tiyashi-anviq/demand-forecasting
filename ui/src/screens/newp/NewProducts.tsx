@@ -20,7 +20,7 @@ export default function NewProducts() {
       <div style={{ marginTop: 12 }}>
         {view === 'launch' && <Launch np={np} setNp={setNp} npds={npds} />}
         {view === 'timing' && <Timing np={np} setNp={setNp} npds={npds} />}
-        {view === 'cannib' && <Cannib />}
+        {view === 'cannib' && <Cannib np={np} setNp={setNp} npds={npds} />}
         {view === 'sim' && <Sim np={np} setNp={setNp} npds={npds} />}
       </div>
     </div>

@@ -67,7 +67,7 @@ export default function OutlookCard() {
         <Kpi l="vs same weeks last year" v={fS(Fs / sum(LY) - 1)} d={`last year ${fN(sum(LY))}`} cls={Fs >= sum(LY) ? 'pos' : 'neg'} />
         <Kpi l={av < 1 ? 'Shippable demand' : 'Peak week'} v={av < 1 ? fN(Fs * av) : dl(NH + pk)} d={av < 1 ? `${fN(Fs * (1 - av))} units short at ${lv.lev.avail}% availability` : fN(F[pk]) + ' units'} />
       </div>
-      <LineChart cfg={{ id: 'ovch', title: 'LightGBM demand outlook', labels: LABELS.slice(i0, i1 + 1), series: m.ser, h: 220,
+      <LineChart cfg={{ id: 'ovch', unit: 'Units per week', title: 'LightGBM demand outlook', labels: LABELS.slice(i0, i1 + 1), series: m.ser, h: 220,
         explain: { weeks: W.slice(i0, i1 + 1), scope: (prod !== 'ALL' && PM[prod] ? PM[prod].name : cat === 'ALL' ? 'all products' : cat) + (lvl === 'N' ? ' · national' : ' · all depots'), ids: (() => { const pids = (prod !== 'ALL' && PM[prod] ? [PM[prod]] : prodsIn('ALL', cat)).map((x) => x.id); return lvl === 'N' ? natIds(pids) : kolIds(Object.keys(D.dep), pids); })() },
         bands: [{ i0: T0, i1: i1 - i0, fill: 'var(--shade-info)', label: 'Forecast: Oct 2026 – 3 Jan 2027', tip: 'LightGBM forecast window' }] }} />
       <div style={{ marginTop: 10 }}>
