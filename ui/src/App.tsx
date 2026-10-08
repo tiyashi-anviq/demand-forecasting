@@ -2,6 +2,7 @@ import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-d
 import { ModuleShell } from './layouts/ModuleShell';
 import { ModulePageHeader } from './layouts/ModulePageHeader';
 import { LeversDrawer } from './layouts/LeversDrawer';
+import { ExplainDrawer } from './xai/ExplainDrawer';
 import { UseCasesModal } from './layouts/UseCasesModal';
 import { SCREENS } from './screens/registry';
 import { useApp } from './state/AppState';
@@ -30,6 +31,7 @@ export default function App() {
         </Routes>
       </ModuleShell>
       <LeversDrawer />
+      <ExplainDrawer />
       <UseCasesModal />
     </HashRouter>
   );

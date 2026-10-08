@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
+import xai.explain as EXPLAIN
 
 ROOT = Path(__file__).parent
 DATA = os.environ.get("EVEREADY_DATA", str(ROOT / "data/raw/eveready_mock_weekly_model_ready.csv"))
@@ -34,7 +35,7 @@ async def lifespan(app):
 app = FastAPI(title="Eveready demand forecasting", version="2.1", lifespan=lifespan)
 # the React UI runs on another port (Vite dev server), so allow cross-origin calls (override with EVEREADY_CORS="https://a,https://b")
 app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("EVEREADY_CORS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173").split(","),
-                   allow_methods=["GET"], allow_headers=["*"])
+                   allow_methods=["GET", "POST"], allow_headers=["*"])
 
 
 @app.get("/", include_in_schema=False)
@@ -123,3 +124,23 @@ def backtest(model: str = Query(DEFAULT_MODEL, description="model type = sub-fol
     if model not in BT:
         BT[model] = json.loads(f.read_text())
     return BT[model]
+
+
+class ExplainIn(BaseModel):
+    series_ids: list[str] = Field(..., description="one or more series; contributions are summed (e.g. all national products)")
+    week_start: str
+    model: str = DEFAULT_MODEL
+    horizon: str | None = None
+    ref_weeks: int = Field(4, ge=1, le=13, description="reference = average of the previous N weeks")
+
+
+@app.post("/explain")
+def explain(body: ExplainIn):
+    """Why is the forecast for this week different from the previous weeks? SHAP drivers (units, add up to the change) plus the plain inputs."""
+    p = _pred(body.model)
+    if body.horizon is not None and body.horizon not in p.horizons:
+        raise HTTPException(400, f"horizon must be one of {p.horizons}")
+    try:
+        return EXPLAIN.explain(p, body.series_ids, body.week_start, body.horizon, body.ref_weeks)
+    except (KeyError, ValueError) as e:
+        raise HTTPException(404, str(e))

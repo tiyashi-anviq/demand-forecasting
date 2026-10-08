@@ -10,6 +10,7 @@ interface AppCtx {
   drawerOpen: boolean; setDrawerOpen: (v: boolean) => void;
   ucOpen: boolean; setUcOpen: (v: boolean) => void;
   model: string; setModel: (m: string) => void;
+  explain: { ids: string[]; week: string; scope: string } | null; setExplain: (t: { ids: string[]; week: string; scope: string } | null) => void;
   tabStore: React.MutableRefObject<Record<string, unknown>>;
 }
 const Ctx = createContext<AppCtx | null>(null);
@@ -25,10 +26,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [ucOpen, setUcOpen] = useState(false);
   const [model, setModel] = useState('lightgbm_stacked');   // forecast model served by the API (kept in memory only)
+  const [explain, setExplain] = useState<{ ids: string[]; week: string; scope: string } | null>(null);
   const tabStore = useRef<Record<string, unknown>>({});
   const applyLev = useCallback((l: Lev) => { setLevBusy(true); window.setTimeout(() => { setLev({ ...l }); setLevBusy(false); }, 350); }, []);
-  const value = useMemo(() => ({ theme, toggleTheme: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')), railCollapsed, setRailCollapsed, lev, levBusy, applyLev, drawerOpen, setDrawerOpen, ucOpen, setUcOpen, model, setModel, tabStore }),
-    [theme, railCollapsed, lev, levBusy, applyLev, drawerOpen, ucOpen, model]);
+  const value = useMemo(() => ({ theme, toggleTheme: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')), railCollapsed, setRailCollapsed, lev, levBusy, applyLev, drawerOpen, setDrawerOpen, ucOpen, setUcOpen, model, setModel, explain, setExplain, tabStore }),
+    [theme, railCollapsed, lev, levBusy, applyLev, drawerOpen, ucOpen, model, explain]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 export { useApp };

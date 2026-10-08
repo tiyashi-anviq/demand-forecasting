@@ -1,3 +1,4 @@
+import { natIds, kolIds } from '../../xai/api';
 import { useMemo } from 'react';
 import { useData } from '../../data/DataProvider';
 import { useLevers, useTabState } from '../../state/AppState';
@@ -125,6 +126,7 @@ export default function Forecast() {
       <Card id="fch" style={{ marginBottom: 12 }} title={<>Actual vs LightGBM forecast <Chip>{prod !== 'ALL' ? nameOf(prod) : 'selection'}</Chip></>}
         note="LightGBM is shown for the backtest weeks (last 52) and for the hidden test window, where actuals are withheld and the P10–P90 range is shown. Click legend items to hide lines.">
         <LineChart cfg={{ id: 'fc2', title: 'Actual vs LightGBM forecast', labels: LABELS, series: ser, h: 220,
+          explain: { weeks: W, scope: (prod !== 'ALL' ? nameOf(prod) : 'selection') + (lvl === 'N' ? ' · national' : depot === 'ALL' ? ' · all depots' : ' · ' + depot), ids: (() => { const pids = (prod !== 'ALL' && PM[prod] ? [PM[prod]] : prodsIn(seg, cat)).map((x: any) => x.id); return lvl === 'N' ? natIds(pids) : kolIds(depKeys, pids); })() },
           bands: [{ i0: BT.i0, i1: BT.i1, fill: 'var(--shade-info)', label: 'Backtest', tip: 'LightGBM backtest week' }, { i0: NH, i1: W.length - 1, label: 'Hidden test window', tip: 'Hidden test window (actuals withheld)' }] }} />
       </Card>
       <div className="grid g2" style={{ marginBottom: 12 }}>

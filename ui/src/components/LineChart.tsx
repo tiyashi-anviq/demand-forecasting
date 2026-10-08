@@ -2,12 +2,15 @@ import { useMemo, useState } from 'react';
 import { ComposedModal, ModalHeader, ModalBody } from '@carbon/react';
 import { fK, fN, niceTicks } from '../lib/format';
 import { useTip } from './Tip';
+import { useApp } from '../state/AppState';
 
 export interface LineSeries { name: string; color: string; data: (number | null)[]; dash?: boolean; w?: number }
 export interface Band { i0: number; i1: number; fill?: string; label?: string; tip?: string }
 export interface LineCfg {
   id: string; labels: string[]; series: LineSeries[]; bands?: Band[]; marks?: { i: number; label: string }[];
   yfmt?: (v: number) => string; tfmt?: (v: number) => string; h?: number; yzero?: boolean; ymax?: number; title?: string; tipLabels?: string[]; nozoom?: boolean;
+  /** click a week to open the "Why this week?" drawer: series ids (API form) and an ISO week per label */
+  explain?: { ids: string[]; weeks: string[]; scope: string };
 }
 export function LineChart({ cfg }: { cfg: LineCfg }) {
   const [off, setOff] = useState<Set<number>>(new Set());
@@ -22,6 +25,7 @@ export function LineChart({ cfg }: { cfg: LineCfg }) {
 }
 function LineChartInner({ cfg, off, setOff }: { cfg: LineCfg; off: Set<number>; setOff: (s: Set<number>) => void }) {
   const tip = useTip();
+  const { setExplain } = useApp();
   const [hi, setHi] = useState<number | null>(null);
   const Wd = 820, H = cfg.h || 280, m = { l: 54, r: 14, t: 10, b: 26 }, n = cfg.labels.length;
   const g = useMemo(() => {
@@ -42,6 +46,8 @@ function LineChartInner({ cfg, off, setOff }: { cfg: LineCfg; off: Set<number>; 
     s.data.forEach((v, i) => { if (v == null || !isFinite(v)) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; });
     return { s, d, k };
   });
+  const idxOf = (ev: React.MouseEvent<SVGRectElement>) => { const svg = (ev.currentTarget.ownerSVGElement as SVGSVGElement), r = svg.getBoundingClientRect(), px = ((ev.clientX - r.left) * Wd) / r.width; return Math.max(0, Math.min(n - 1, Math.round((px - m.l) / ((Wd - m.l - m.r) / (n - 1 || 1))))); };
+  const onClick = (ev: React.MouseEvent<SVGRectElement>) => { const e = cfg.explain; if (!e) return; const w = e.weeks[idxOf(ev)]; if (w) { tip.hide(); setExplain({ ids: e.ids, week: w, scope: e.scope }); } };
   const onMove = (ev: React.MouseEvent<SVGRectElement>) => {
     const svg = (ev.currentTarget.ownerSVGElement as SVGSVGElement), r = svg.getBoundingClientRect(), px = ((ev.clientX - r.left) * Wd) / r.width;
     const i = Math.max(0, Math.min(n - 1, Math.round((px - m.l) / ((Wd - m.l - m.r) / (n - 1 || 1)))));
@@ -55,6 +61,7 @@ function LineChartInner({ cfg, off, setOff }: { cfg: LineCfg; off: Set<number>; 
   return (
     <>
       {cfg.series.length > 1 && <Legend series={cfg.series} off={off} setOff={setOff} />}
+      {cfg.explain && <div className="chart-hint">Click any week to see why the forecast moves.</div>}
       <svg className="ch" viewBox={`0 0 ${Wd} ${H}`} role="img" aria-label={cfg.title || 'chart'}>
         {(cfg.bands || []).map((b, j) => { const xa = X(Math.max(0, b.i0)), xb = X(Math.min(n - 1, b.i1)); return (
           <g key={j}><rect x={xa} y={m.t} width={Math.max(1.5, xb - xa)} height={H - m.t - m.b} fill={b.fill || 'var(--shade-test)'} />
@@ -67,7 +74,7 @@ function LineChartInner({ cfg, off, setOff }: { cfg: LineCfg; off: Set<number>; 
           <path d={p.d} fill="none" stroke={p.s.color} strokeWidth={p.s.w || 2} strokeDasharray={p.s.dash ? '5 4' : undefined} strokeLinejoin="round" strokeLinecap="round" />
           {n <= 40 && p.s.data.map((v, i) => v != null ? <circle key={i} cx={X(i)} cy={Y(v)} r={3} fill={p.s.color} stroke="var(--surface)" strokeWidth={2} /> : null)}</g>)}
         {hi != null && <line x1={X(hi)} x2={X(hi)} y1={m.t} y2={H - m.b} stroke="var(--text-3)" strokeWidth={1} />}
-        <rect x={m.l} y={m.t} width={Wd - m.l - m.r} height={H - m.t - m.b} fill="transparent" onMouseMove={onMove} onMouseLeave={() => { setHi(null); tip.hide(); }} />
+        <rect x={m.l} y={m.t} width={Wd - m.l - m.r} height={H - m.t - m.b} fill="transparent" style={cfg.explain ? { cursor: 'pointer' } : undefined} onClick={onClick} onMouseMove={onMove} onMouseLeave={() => { setHi(null); tip.hide(); }} />
       </svg>
     </>
   );
@@ -90,7 +97,8 @@ function ZoomModal({ cfg, off, setOff, onClose }: { cfg: LineCfg; off: Set<numbe
   const cfg2: LineCfg = { ...cfg, id: cfg.id + '_z', nozoom: true, h: Math.max(300, Math.min(620, innerHeight - 340)), labels: sl(cfg.labels), tipLabels: cfg.tipLabels ? sl(cfg.tipLabels) : undefined,
     series: cfg.series.map((s) => ({ ...s, data: sl(s.data) })),
     bands: (cfg.bands || []).filter((k) => k.i1 >= a && k.i0 <= b).map((k) => ({ ...k, i0: k.i0 - a, i1: k.i1 - a })),
-    marks: (cfg.marks || []).filter((k) => k.i >= a && k.i <= b).map((k) => ({ ...k, i: k.i - a })) };
+    marks: (cfg.marks || []).filter((k) => k.i >= a && k.i <= b).map((k) => ({ ...k, i: k.i - a })),
+    explain: cfg.explain ? { ...cfg.explain, weeks: sl(cfg.explain.weeks) } : undefined };
   return (
     <ComposedModal open size="lg" onClose={onClose} aria-label="Zoomed chart">
       <ModalHeader title={`${cfg.title || 'Chart'} — zoom`} />

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useData } from '../../data/DataProvider';
-import { useLevers, useTabState } from '../../state/AppState';
+import { useApp, useLevers, useTabState } from '../../state/AppState';
+import { natIds } from '../../xai/api';
 import { useTip } from '../../components/Tip';
 import { Card, Ctl, Kpi, SegCtl, SelectCtl } from '../../components/Controls';
 import { LineChart } from '../../components/LineChart';
@@ -77,7 +78,8 @@ export default function FestivalCalendar() {
 }
 
 function Detail({ f, sr, cat, FEST, calSeries }: { f: any; sr: any; cat: string; FEST: any[]; calSeries: (c: string) => any }) {
-  const { W, NH, LABELS, CATS } = useData();
+  const { D, W, NH, LABELS, CATS } = useData();
+  const { setExplain } = useApp();
   const wIdx = (ds: string) => W.indexOf(ds);
   const i = wIdx(monOf(f.date)), hist = i >= 0 && i < NH;
   const head = (
@@ -88,6 +90,7 @@ function Detail({ f, sr, cat, FEST, calSeries }: { f: any; sr: any; cat: string;
   if (i < 0 || i >= W.length) return <div id="cdet">{head}<div className="callout" style={{ marginTop: 12 }}><b>Outside the forecast window.</b> The data and the LightGBM forecast run to the week ending 3 Jan 2027, so there is no forecast for this date yet.</div></div>;
   const cur = sr.V[i], pre = sum(sr.V.slice(Math.max(0, i - 4), i)) / Math.max(1, Math.min(4, i)), up = pre ? cur / pre - 1 : null;
   const pf = FEST.find((x) => x.festival === f.festival && x.year === String(+f.year - 1)), pi = pf ? wIdx(monOf(pf.date)) : -1, ly = pi >= 0 ? sr.V[pi] : null;
+  const eIds = natIds(D.prods.filter((p) => cat === 'ALL' || p.cat === cat).map((p) => p.id));
   const i0 = Math.max(0, i - 8), i1 = Math.min(W.length - 1, i + 8), sl = (a: any[]) => a.slice(i0, i1 + 1);
   const cats = CATS.map((ct) => { const s = calSeries(ct), v = s.V[i], pr = sum(s.V.slice(Math.max(0, i - 4), i)) / Math.max(1, Math.min(4, i)); return { cat: ct, v, pr, up: pr ? v / pr - 1 : null, fc: s.FC[i] }; });
   return (
@@ -101,8 +104,10 @@ function Detail({ f, sr, cat, FEST, calSeries }: { f: any; sr: any; cat: string;
           : <Kpi l="Forecast window" v="Yes" d="This week is inside the 5 Oct 2026 – 3 Jan 2027 forecast" />}
         <Kpi l="vs same festival last year" v={ly != null ? fS(cur / ly - 1) : '–'} d={pf ? `${pf.festival.split(' (')[0]} ${dshort(pf.date)}: ${fN(ly)}` : 'No earlier occurrence in the data'} cls={ly != null && cur >= ly ? 'pos' : 'neg'} />
       </div>
+      <div style={{ margin: '-4px 0 12px' }}><button type="button" className="zbtn" style={{ position: 'static' }} onClick={() => setExplain({ ids: eIds, week: W[i], scope: short(f.festival) + ' week · ' + (cat === 'ALL' ? 'all products' : cat) + ' · national' })}>Why is this week different? →</button></div>
       <Card style={{ marginBottom: 12 }} title={'Demand around ' + short(f.festival)} note={`Eight weeks either side of the holiday week${cat === 'ALL' ? ', all products' : ', ' + cat}. Past weeks show actual demand and the 13-week-ahead LightGBM backtest forecast; later weeks show the forecast.`}>
         <LineChart cfg={{ id: 'cch', title: 'Demand around ' + f.festival, labels: LABELS.slice(i0, i1 + 1), h: 240,
+          explain: { weeks: W.slice(i0, i1 + 1), ids: eIds, scope: short(f.festival) + ' · ' + (cat === 'ALL' ? 'all products' : cat) + ' · national' },
           series: [{ name: 'Actual demand', color: COL(0), data: sl(sr.A), w: 2.4 }, { name: 'LightGBM forecast', color: COL(1), data: sl(sr.FC), w: 2.4 }, { name: 'Same weeks last year', color: COL(3), data: sl(sr.LY), dash: true },
             ...(i1 >= NH ? [{ name: 'P10', color: COL(7), data: sl(sr.PL.map((v: any, k: number) => (k >= NH ? v : null))), dash: true, w: 1.1 }, { name: 'P90', color: COL(7), data: sl(sr.PH.map((v: any, k: number) => (k >= NH ? v : null))), dash: true, w: 1.1 }] : [])],
           bands: i1 >= NH ? [{ i0: Math.max(0, NH - i0), i1: i1 - i0, fill: 'var(--shade-info)', label: 'Forecast window', tip: 'LightGBM forecast window' }] : [],
