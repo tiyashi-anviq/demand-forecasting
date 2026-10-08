@@ -15,7 +15,7 @@ export interface ScreenDef { id: string; path: string; title: string; subtitle: 
 export const SCREENS: ScreenDef[] = [
   { id: 'overview', path: '/overview', title: 'Overview', group: 'Plan', icon: Dashboard, Component: Overview, subtitle: 'KPIs, the LightGBM demand outlook to January 2027 and the 19 use cases.' },
   { id: 'forecast', path: '/forecast', title: 'Forecast & accuracy', group: 'Plan', icon: ChartLine, Component: Forecast, subtitle: '13 / 9 / 4-week-ahead forecasts, backtested over 52 weeks against the sales forecast and a seasonal baseline.' },
-  { id: 'explain', path: '/explain', title: 'Explainability', group: 'Plan', icon: Analytics, Component: Xai, subtitle: 'Why each model forecasts what it does for a chosen week, side by side, with the inputs and the backtest record.' },
+  { id: 'explain', path: '/explain', title: 'Explainability', group: 'Plan', icon: Analytics, Component: Xai, subtitle: 'Why the selected model forecasts what it does for a chosen week, with the inputs and its own backtest record.' },
   { id: 'newp', path: '/new-products', title: 'New products', group: 'Plan', icon: Rocket, Component: NewProducts, subtitle: 'Launch ramps, timing, cannibalisation, similarity analogues and the mosquito vaporizer.' },
   { id: 'cal', path: '/calendar', title: 'Festival calendar', group: 'Plan', icon: Calendar, Component: FestivalCalendar, subtitle: 'Pick a festival to see the forecast around it.' },
   { id: 'supply', path: '/supply', title: 'Supply & inventory', group: 'Operate', icon: Delivery, Component: Supply, subtitle: 'Depot cover, replenishment and OTIF, plant capacity, transfers and MOQ.' },

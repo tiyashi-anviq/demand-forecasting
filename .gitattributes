@@ -1,0 +1,3 @@
+# keep model files byte-for-byte (LightGBM text models break with CRLF line endings)
+*.txt -text
+*.json -text
